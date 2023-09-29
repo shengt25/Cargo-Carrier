@@ -13,4 +13,4 @@ def test_function(p1, p2, p3):
     pass
 ```
 
-Note: in `:param p1`, the name "p1", should be the same as parameter'name in the function
+Note: in `:param p1`, the name "p1", should be the same as parameter'name in the function.
