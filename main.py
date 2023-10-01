@@ -1,119 +1,166 @@
-import threading, queue
 import os
 import time
-
-MENU_FREEZE = 0
-MENU_NORMAL = 1
-VALUE_MONEY = 2
-VALUE_FUEL = 3
-VALUE_EMISSION = 4
-DEFREEZE = -1
+from Plane import Plane
+from Player import Player
+from values import *
+import sys
 
 
-def cls():
+def clear_screen():
     os.system("cls" if os.name == "nt" else "clear")
 
 
-def decode_message(queue_item: list):
-    command = queue_item[0]
-    content = ""
+def buy_fuel_emission(select):
+    flag_buy_fuel = False
+    flag_buy_emission = False
+    is_success = False
+    if select == "1":
+        flag_buy_fuel = True
+        price = price_list["fuel"]
+    else:
+        flag_buy_emission = True
+        price = price_list["emission"]
     try:
-        for item in queue_item[1:]:
-            content += item + "\n"
+        print(f"Okay, the price is {price}/L, how many litres do you want?")
+        amount = int(input("> "))
     except:
-        pass
-    return command, content
-
-
-def get_message(q):
-    if q.qsize() != 0:
-        return q.get()
-    # messages = []
-    # for _ in range(q.qsize()):
-    #     messages.append(q.get())
-    #     # or process message here
-    # return messages
-
-
-def game_front(q):
-    game_time = 100
-    print_plus = ""
-    money = 0
-    fuel = 0
-    emission = 0
-    pause_flag = False
-    pause_text = ""
-    while True:
-        message_new = get_message(q)
-        if message_new is not None:
-            message_type, message_content = decode_message(message_new)
-            if message_type == MENU_NORMAL:
-                print_plus = message_content
-            elif message_type == MENU_FREEZE:
-                print_plus = message_content
-                pause_flag = True
-                pause_text = "(Pause)"
-
-        print_whole = (f"Player: A, time left: {game_time}{pause_text}\n"
-                       f"Money: {money}\n"
-                       f"Fuel: {fuel}\n"
-                       f"Emission: {emission}\n"
-                       f"------------------\n") + print_plus
-
-        if pause_flag == False:
-            print(print_whole)
+        input("Hmm, tell me only numbers, would you? (press enter to continue)")
+    else:
+        print(f"That is {amount * price} for {amount} litres totally, is that ok?")
+        print("(press enter to continue, input c to cancel)")
+        confirm = input("> ")
+        if confirm == "":
+            if flag_buy_fuel:
+                is_success = player.buy_fuel(amount)
+            elif flag_buy_emission:
+                is_success = player.buy_emission(amount)
+            if not is_success:
+                input("Are you sure? seems you don't have enough money. (press enter to continue)")
+            else:
+                input("Thank you for purchasing! (press enter to continue)")
         else:
-            print(print_whole)
-            q.get()  # use queue to block the thread
-            pause_flag = False
-            pause_text = ""
-
-        game_time -= 1
-        time.sleep(1)
-        cls()
+            print("Ok, cancelled.")
 
 
-def game_back(q):
+def upgrade_plane():
+    print("under construction")
+
+
+def shop_menu():
+    welcome = f"Hey {player.name}, welcome to my store. What would you like to buy?"
     while True:
-        q.put([MENU_NORMAL, "Menu", "1: buy", "2: upgrade"])
-        while True:
-            key = input()
-            if key == "1":
-                q.put([MENU_NORMAL, "Hi, what can I do for you?", "1: buy fuel", "2: buy emission", "3: exit"])
-                while True:
-                    key = input()
-                    if key == "1":
-                        q.put([MENU_FREEZE, "How many litres fuel?"])
-                        key = input()
-                        q.put(DEFREEZE)
-                    if key == "2":
-                        q.put([MENU_FREEZE, "How many litres co2?"])
-                    if key == "3":
-                        q.put([MENU_NORMAL, "Menu", "1: buy", "2: upgrade"])
-                        break
+        clear_screen()
+        print(player_info())
+        print("\n".join([welcome,
+                         "1. Fuel",
+                         "2. Emission permission",
+                         "3. Upgrade my plane",
+                         "4. Exit"]))
+        select = input("> ")
+        if select == "1" or select == "2":
+            buy_fuel_emission(select)
+        elif select == "3":
+            upgrade_plane()
+        elif select == "4":
+            input("Bye, see you next time! (press enter to continue)")
+            break
+        else:
+            input("Sorry that is not an option. (press enter to continue)")
+        welcome = "Anything else?"
 
-            elif key == "2":
-                q.put([MENU_NORMAL, "Ok, which plane would you like to upgrade?"])
-                key = input()
 
-            if key == "1":
-                q.put([MENU_FREEZE])
-                key = input()
+def main_menu():
+    print("")
+
+
+def player_info():
+    player_name = player.name
+    game_time = 1000
+    player_money = f"Money: {player.money}"
+    player_fuel = f"Fuel: {player.fuel}L"
+    player_emission = f"CO2 permission: {player.emission}L"
+
+    plane_emission = f"CO2: {plane.level['emission']}L/km"
+    plane_fuel = f"Fuel: {plane.level['fuel']}L/km"
+    plane_speed = f"Speed: {plane.level['speed']}km/h"
+    plane_payload = f"Payload: {plane.level['payload']}ton"
+    a = "^"
+    w = 20
+    info = (f"Time left: {game_time} hours\n"
+            f"{player_name:{a}{w}} | {player_money:{a}{w}} | {player_fuel:{a}{w}} | {player_emission:{a}{w}}\n"
+            f"{'plane':{a}{w}} | {plane_emission:{a}{w}} | {plane_fuel:{a}{w}} | {plane_speed:{a}{w}} | {plane_payload:{a}{w}}\n"
+            f"------------------------------------------------")
+    return info
+
+
+def calculate_distance():
+    pass
+
+
+# def plane_flying(start_name, dest_name, distance, plane):
+def plane_flying():
+    # todo update input here
+    start_name = "Helsinki"
+    dest_name = "Paris"
+    distance = 1000
+    speed = 950
+
+    eta_game = (distance / speed) * 60  # time in game (minutes)
+    eta_real = eta_game * 60 / time_scale  # time in real world (second)
+
+    # animation
+    frame_rate = 40
+    interval = 1 / frame_rate
+    ani_path_length = 120
+    ani_speed_frame = ani_path_length / eta_real / frame_rate  # block speed per frame
+    plane_icon = "🛫"
+    count = 0
+
+    time_limit_game = 7200
+    time_game_frame = time_scale / 60 / frame_rate
+
+    print(eta_game)
+
+    while True:
+        pre = int(count * ani_speed_frame)
+        suf = int((ani_path_length - (ani_speed_frame * count)))
+        animation = start_name + " " * pre + plane_icon + " " * suf + dest_name + " " * 10
+        time.sleep(interval)
+        count += 1
+        time_limit_game -= time_game_frame
+        clear_screen()
+        print("time left:", int(time_limit_game), "minutes")
+        print(animation)
+        if pre >= ani_path_length:
+            break
+
+
+def plane_landed():
+    pass
+
+
+def generate_mission():
+    pass
+
+
+def generate_location():
+    pass
+
+
+def game():
+    print("Hello Message")
+    is_flying = False
+
+    while True:
+        if not is_flying:
+            main_menu()
 
 
 if __name__ == "__main__":
-    q = queue.Queue()
-    thread_game = threading.Thread(target=game_front, args=(q,))
-    thread_game.start()
+    time_limit = 720  # minutes
 
-    thread_display = threading.Thread(target=game_back, args=(q,))
-    thread_display.start()
-
-    # thread_timer = threading.Thread(target=timer, args=())
-    # thread_show = threading.Thread(target=show, args=())
-    #
-    # thread_timer.start()
-    # thread_show.start()
-    #
-    # thread_timer.join()
-    # thread_show.join()
+    player = Player(name="player1", init_money=10000, init_emission=100, init_fuel=100)
+    plane = Plane(player)
+    # player_info()
+    # shop_menu()
+    plane_flying()
