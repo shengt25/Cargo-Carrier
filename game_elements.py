@@ -12,30 +12,6 @@ class Cargo_Type(Enum):
     METAL = 2
 
 
-def load_all_cargo_metadata(json_file):
-    with open(json_file, 'r') as file:
-        data = json.load(file)
-    all_cargo_metadata_enum = {}
-    all_cargo_metadata_str = data.get("cargos", [])
-    for cargo_name in all_cargo_metadata_str:
-        cargo_name_enum = Cargo_Type[cargo_name.upper()]
-        attributes = {
-            "price": all_cargo_metadata_str[cargo_name]["price"],
-            "weight": all_cargo_metadata_str[cargo_name]["weight"],
-            "size": all_cargo_metadata_str[cargo_name]["size"],
-            "description": all_cargo_metadata_str[cargo_name]["description"],
-        }
-        all_cargo_metadata_enum[cargo_name_enum] = attributes
-    return all_cargo_metadata_enum
-
-
-def create_cargo(cargo_type: Cargo_Type, all_cargo_metadata: dict, dest: str):
-    # weight = data
-    return Cargo(cargo_type, all_cargo_metadata[cargo_type]["weight"], all_cargo_metadata[cargo_type]["size"],
-                 all_cargo_metadata[cargo_type]["price"],
-                 all_cargo_metadata[cargo_type]["description"], dest)
-
-
 class Cargo:
     def __init__(self, cargo_type, weight, size, price, description, dest=None):
         # using cargo_type instead of type, because type is a built-in name
@@ -47,18 +23,28 @@ class Cargo:
         self.description = description
 
     @staticmethod
-    def load_cargo_types(cargo_type_data):
-        cargos = []
-        for cargo_data in cargo_type_data:
-            # cargo_type is a string loaded from cargo_type_data
-            cargo_type = Cargo_Type[cargo_data.upper()]  # string to enum
-            price = cargo_type_data[cargo_data]["price"]
-            weight = cargo_type_data[cargo_data]["weight"]
-            size = cargo_type_data[cargo_data]["size"]
-            description = cargo_type_data[cargo_data]["description"]
-            cargo = Cargo(cargo_type, weight, size, price, description)
-            cargos.append(cargo)
-        return cargos
+    def load_all_cargo_metadata(json_file):
+        with open(json_file, 'r') as file:
+            data = json.load(file)
+        all_cargo_metadata_enum = {}
+        all_cargo_metadata_str = data.get("cargos", [])
+        for cargo_name in all_cargo_metadata_str:
+            cargo_name_enum = Cargo_Type[cargo_name.upper()]
+            attributes = {
+                "price": all_cargo_metadata_str[cargo_name]["price"],
+                "weight": all_cargo_metadata_str[cargo_name]["weight"],
+                "size": all_cargo_metadata_str[cargo_name]["size"],
+                "description": all_cargo_metadata_str[cargo_name]["description"],
+            }
+            all_cargo_metadata_enum[cargo_name_enum] = attributes
+        return all_cargo_metadata_enum
+
+    @staticmethod
+    def create_cargo(cargo_type: Cargo_Type, all_cargo_metadata: dict, dest: str):
+        # weight = data
+        return Cargo(cargo_type, all_cargo_metadata[cargo_type]["weight"], all_cargo_metadata[cargo_type]["size"],
+                     all_cargo_metadata[cargo_type]["price"],
+                     all_cargo_metadata[cargo_type]["description"], dest)
 
 
 class Store:
