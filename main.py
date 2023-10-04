@@ -1,7 +1,5 @@
 import os
 import time
-from game_elements import *
-from utils import *
 import sys
 
 
