@@ -108,6 +108,7 @@ def calculate_distance():
 
 # def plane_flying(start_name, dest_name, distance, plane):
 def plane_flying():
+    time_scale = 1800
     # todo update input here
     time_limit_game = 7200
 
@@ -145,6 +146,19 @@ def plane_flying():
             break
 
 
+def dice_animation():
+    dice = """
+       .-------.
+      /   o   /| 
+     /_______/o| 
+     | o     | |
+     |   o   |o/ 
+     |     o |/ 
+     '-------'
+     """
+    print(dice)
+
+
 def plane_landed():
     pass
 
@@ -176,10 +190,12 @@ def game():
 
 if __name__ == "__main__":
     time_limit = 720  # minutes
-
-    player = Player(name="player1", init_money=10000, init_emission=100, init_fuel=100)
-    plane = Plane(player, plane1_specs_list)
-    # player_info()
-
-    go_menu_shop()
-    plane_flying()
+    #
+    # player = Player(name="player1", init_money=10000, init_emission=100, init_fuel=100)
+    # plane = Plane(player, plane1_specs_list)
+    # # player_info()
+    #
+    # go_menu_shop()
+    # plane_flying()
+    # plane_flying()
+    dice_animation()

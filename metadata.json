@@ -18,10 +18,6 @@
         "emission": 10000,
         "fuel": 10000
     },
-    "price": {
-        "emission": 10,
-        "fuel": 10
-    },
     "cargos": {
         "wood": {
             "price": 10,
@@ -36,19 +32,19 @@
             "description": ""
         }
     },
-    "store_items": {
+    "shop_items": {
         "emission": {
-            "price": 100,
+            "price": 10,
             "unit": "ton",
             "description": ""
         },
         "fuel": {
-            "price": 100,
+            "price": 20,
             "unit": "ton",
             "description": ""
         }
     },
-    "plane_upgrades": {
+    "upgrades": {
         "emission": [
             {
                 "price": 100,
