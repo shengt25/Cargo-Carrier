@@ -7,7 +7,7 @@ def clear_screen():
     os.system("cls" if os.name == "nt" else "clear")
 
 
-def make_dice(num):
+def make_ascii_dice(num):
     base_dice = """
        .-------.
       /       /| 
@@ -54,47 +54,54 @@ def make_dice(num):
     return dice
 
 
-def roll_dice():
+def play_rolling_dice(result: int):
     interval = 0.05
-    count = 0
-    num = random.randint(1, 6)
-    while count < 1.5:
-        num_animation = random.randint(1, 6)
-        print(make_dice(num_animation))
-        time.sleep(interval)
+    length = 1
+    while length > 0:
         clear_screen()
-        count += interval
+        num_animation = random.randint(1, 6)
+        print(make_ascii_dice(num_animation))
+        length -= interval
+        time.sleep(interval)
     clear_screen()
-    print(make_dice(num))
-    return num
+    print(make_ascii_dice(result))
 
+    frame = 0
+    while frame <= 4:
+        clear_screen()
+        print(make_ascii_dice(result))
+        print(f"The result is {result}, let's see" + "." * frame)
+        frame += 1
+        time.sleep(0.8)
 
-def plane_flying(start_name, dest_name, distance):
-    length = 60
-    eta = 1
+def play_flying(start_name, dest_name, distance, player_state_formatted):
+    speed = 800
+    ani_length = 60
+    time_scale = 1800
+
+    eta_game = (distance / speed) * 60  # time in game (minutes)
+    eta_real = eta_game * 60 / time_scale  # time in real world (second)
+
     frame_rate = 60
     interval = 1 / frame_rate
     plane_icon = "🛫"
 
-    speed = length / eta / frame_rate
-    distance_per_frame = distance / eta / frame_rate
+    ani_speed = ani_length / eta_real / frame_rate  # block speed per frame
 
     frame_count = 0
     traveled_distance = 0
-    while frame_count <= frame_rate * eta:
+    while frame_count <= frame_rate * eta_real:
+        clear_screen()
+
         pre = int(frame_count * speed)
         frame_plane = " " * (pre + len(start_name)) + plane_icon
         distance_mark = f"-- {distance}km -->"
-        frame_cities = start_name + " " * int((length - len(distance_mark)) / 2) + distance_mark + " " * int(
-            (length - len(distance_mark)) / 2) + dest_name
-        traveled_distance += distance_per_frame
+        frame_cities = start_name + " " * int((ani_length - len(distance_mark)) / 2) + distance_mark + " " * int(
+            (ani_length - len(distance_mark)) / 2) + dest_name
+        traveled_distance += ani_speed
         frame_count += 1
-        time.sleep(interval)
-        clear_screen()
 
+        print(player_state_formatted)
         print(frame_plane)
         print(frame_cities)
-
-
-def ending_flying():
-    pass
+        time.sleep(interval)
