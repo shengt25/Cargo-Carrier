@@ -2,7 +2,7 @@ import mysql.connector
 
 from animation import *
 from geopy.distance import distance as geo_distance
-
+from story import get_story
 
 # ---------------------
 # UTILITIES
@@ -343,7 +343,8 @@ def before_shop(current_airport_info: dict, plane_param: dict, before_shop_param
         else:
             # not detected
             play_detector(player_state, probability_up, False)
-
+    # fix update current airport ICAO
+    player_state['location'] = current_airport_info['ident']
     welcome_message = (f"Hello, welcome to {airport_name} in {country_name} (ICAO: {player_state['location']})\n\n"
                        f"Wanna try your luck? Just €{before_shop_param['dice_game_cost']}! "
                        f"If not, I'll return you {fuel_back_percent}% ({fuel_back} kg) fuel back, as promised.\n"
@@ -360,6 +361,8 @@ def before_shop(current_airport_info: dict, plane_param: dict, before_shop_param
         print("1. Sure\n2. Tell me about it\n3. Next time")
         select = input("> ")
         if select == "1":  # go dice game
+            # fixing subtract 20euro when rolling the dice
+            player_state["money"] -= 20
             print("Great! Tell me when you're ready.")
             input("(press Enter to continue)")
             result = random.randint(1, 6)
@@ -400,13 +403,15 @@ def before_shop(current_airport_info: dict, plane_param: dict, before_shop_param
             input("(press Enter to continue)")
         elif select == "3":  # leave
             print(f"Ok then, {fuel_back} kg fuel has been added to your plane!")
+            # fix update fuel when player get fuel back
+            player_state['fuel'] += fuel_back
             break
         else:
             print("Sorry that is not an option.")
             input("(press Enter to continue)")
         welcome_message = (f"So, make you decision, €{before_shop_param['dice_game_cost']} to play "
                            f"or I give you {fuel_back} kg fuel back")
-
+        
 
 def shop(player_state: dict, current_airport_info: dict, shop_param: dict) -> int:
     """
@@ -456,6 +461,8 @@ def shop(player_state: dict, current_airport_info: dict, shop_param: dict) -> in
                     else:
                         # spend money and save to database
                         player_state["money"] -= expense
+                        # fix update fuel state when purchasing more
+                        player_state["fuel"] += amount
                         print("Thank you for purchasing!")
                         input("(press Enter to continue)")
                 else:
@@ -705,10 +712,26 @@ def main():
     connection = mysql.connector.connect(
         host="127.0.0.1",
         port=3306,
-        database="flight_game",
-        user="root",
-        password="metro",
+        database="db_name",
+        user="user_name",
+        password="pwd",
         autocommit=True)
+    
+    # Give player option to read story or not
+    while True:
+        story = input("Do you want to read background story of this game? (Y/N): ").upper()
+        if story == 'N':
+            break
+        elif story == 'Y':
+            for line in get_story():
+                print(line)
+            break
+        else:
+            print("Invalid option! Please enter only 'y' or 'n'")
+    
+    print("-------------------------------------------------------------------------------")
+    print("All right! Now let's get starting your journey")
+    print("-------------------------------------------------------------------------------")
 
     while True:
         print("1.New Game\n2.Continue\n3.High Score\n4.Exit")
