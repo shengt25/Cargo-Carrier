@@ -369,66 +369,71 @@ def play_score(player_state: dict, fuel_price, score_money, score_emission, scor
     fuel_to_money = player_state_ani["fuel"] * fuel_price
     fuel_to_money_step = int(fuel_to_money / play_time / frame_rate)
 
-    # convert fuel to money
-    while True:
-        clear_screen()
-        print(format_player_state(player_state_ani))
-        if player_state_ani["fuel"] >= 0:
-            player_state_ani["fuel"] -= fuel_step
-            player_state_ani["money"] += fuel_to_money_step
-        else:
-            player_state_ani["fuel"] = 0
-            player_state_ani["money"] = fuel_to_money + player_state["money"]
+    # animation fuel to money
+    if player_state_ani["fuel"] > 0:
+        while True:
             clear_screen()
             print(format_player_state(player_state_ani))
-            break
-        time.sleep(interval)
+            if player_state_ani["fuel"] >= 0:
+                player_state_ani["fuel"] -= fuel_step
+                player_state_ani["money"] += fuel_to_money_step
+            else:
+                player_state_ani["fuel"] = 0
+                player_state_ani["money"] = fuel_to_money + player_state["money"]
+                clear_screen()
+                print(format_player_state(player_state_ani))
+                break
+            time.sleep(interval)
 
-    # calculating money
-    time.sleep(pause_time)
-    money_step = int(player_state_ani["money"] / play_time / frame_rate)
-    while True:
-        clear_screen()
-        print(format_player_state(player_state_ani))
-        if player_state_ani["money"] >= 0:
-            player_state_ani["money"] -= money_step
-        else:
-            player_state_ani["money"] = 0
+    # animation money
+    if player_state_ani["money"] > 0:
+        time.sleep(pause_time)
+        money_step = int(player_state_ani["money"] / play_time / frame_rate)
+        while True:
             clear_screen()
             print(format_player_state(player_state_ani))
-            break
-        time.sleep(interval)
+            if player_state_ani["money"] >= 0:
+                player_state_ani["money"] -= money_step
+            else:
+                player_state_ani["money"] = 0
+                clear_screen()
+                print(format_player_state(player_state_ani))
+                break
+            time.sleep(interval)
 
-    # calculating emission
-    time.sleep(pause_time)
-    emission_step = int(player_state_ani["emission"] / play_time / frame_rate)
-    while True:
-        clear_screen()
-        print(format_player_state(player_state_ani))
-        if player_state_ani["emission"] >= 0:
-            player_state_ani["emission"] -= emission_step
-        else:
-            player_state_ani["emission"] = 0
+    # animation emission
+    if player_state_ani["emission"] > 0:
+        time.sleep(pause_time)
+        emission_step = int(player_state_ani["emission"] / play_time / frame_rate)
+        while True:
             clear_screen()
             print(format_player_state(player_state_ani))
-            break
-        time.sleep(interval)
+            if player_state_ani["emission"] >= 0:
+                player_state_ani["emission"] -= emission_step
+            else:
+                player_state_ani["emission"] = 0
+                clear_screen()
+                print(format_player_state(player_state_ani))
+                break
+            time.sleep(interval)
 
-    # calculating time
-    time.sleep(pause_time)
-    time_step = int(player_state_ani["time"] / play_time / frame_rate)
-    while True:
-        clear_screen()
-        print(format_player_state(player_state_ani))
-        if player_state_ani["time"] >= 0:
-            player_state_ani["time"] -= time_step
-        else:
-            player_state_ani["time"] = 0
+    # animation time
+    if player_state_ani["time"] > 0:
+        time.sleep(pause_time)
+        time_step = int(player_state_ani["time"] / play_time / frame_rate)
+        while True:
             clear_screen()
             print(format_player_state(player_state_ani))
-            break
-        time.sleep(interval)
+            if player_state_ani["time"] >= 0:
+                player_state_ani["time"] -= time_step
+            else:
+                player_state_ani["time"] = 0
+                clear_screen()
+                print(format_player_state(player_state_ani))
+                break
+            time.sleep(interval)
 
+    # animation score
     column = [f"{score_time}\t", f"+ {score_money}\t", f"- {score_emission}\t", f"= {score}"]
     clear_screen()
     print(format_player_state(player_state_ani))

@@ -152,16 +152,23 @@ def get_airports_in_range(connection, plane_param, player_state: dict) -> tuple[
 # ---------------------
 # PLAYER STATE
 # ---------------------
-def save_player_state(connection, player_state: dict) -> None:
+def save_player_state(connection, player_state: dict, is_finish=False) -> None:
     """
     Save player state to database. (money, fuel, emission, location, probability, time)
+    :param is_finish:
     :param connection: SQL connection
     :param player_state: Player state dictionary
     :param init: Initial saving of a new game?
     """
-    sql_query = (
-        "UPDATE game SET money=%s,fuel=%s, emission=%s, location=%s, probability=%s, treasure=%s, time=%s, score=%s "
-        "WHERE screen_name=%s AND finish=0")
+    if is_finish:
+        sql_query = (
+            "UPDATE game SET money=%s,fuel=%s, emission=%s, location=%s, probability=%s, treasure=%s, time=%s, score=%s "
+            "WHERE screen_name=%s AND finish=1")
+    else:
+        sql_query = (
+            "UPDATE game SET money=%s,fuel=%s, emission=%s, location=%s, probability=%s, treasure=%s, time=%s, score=%s "
+            "WHERE screen_name=%s AND finish=0")
+
     parameter = (player_state["money"], player_state["fuel"], player_state["emission"], player_state["location"],
                  player_state["probability"], player_state["treasure"], player_state["time"], player_state["score"],
                  player_state["name"])
@@ -185,8 +192,8 @@ def load_player_state(connection, player_name: str) -> dict:
     :return: Player's state, whether finished last game
     """
     # note: when player has same name, select the newest one (whose id is bigger).
-    sql_query = ("SELECT money, fuel, emission, location, probability, time, finish, treasure FROM game "
-                 "WHERE screen_name=%s AND finish=0")
+    sql_query = ("SELECT money, fuel, emission, location, probability, time, finish, score, treasure FROM game "
+                 "WHERE screen_name=%s AND finish=0 AND id=(SELECT max(id) FROM game)")
     player_state = database_execute(connection, sql_query, (player_name,))[0]
     # reset goal reminder if player load game
     player_state["reminder"] = 0
@@ -272,6 +279,7 @@ def calculate_score(player_state, score_param):
     score_emission = round(score_param["emission"] * player_state["emission"])
     score_time = round(score_param["time"] * player_state["time"])
     score = score_money + score_time - score_emission
+    player_state["score"] = score
     return score_money, score_emission, score_time, score
 
 
@@ -549,8 +557,11 @@ def departure(connection, current_airport_info, shop_param, plane_param, player_
         is_valid_icao = False
 
         if select == "s":
-            shop(player_state, current_airport_info, shop_param)
-            continue
+            ending_type = shop(player_state, current_airport_info, shop_param)
+            if ending_type == 0:
+                continue
+            else:
+                return ending_type, {}
 
         for airport_info in airport_info_list:
             if select == airport_info['ident']:
@@ -629,13 +640,13 @@ def game(connection, resume=False):
         # new game, init, and save
         current_airport_info = generate_random_airports(connection, 25)
         player_state = {"name": player_name, "money": init_money, "fuel": init_fuel, "emission": 0,
-                        "location": current_airport_info["ident"],
-                        "probability": 5, "time": time_limit, "treasure": 0, "reminder": 0}
+                        "location": current_airport_info["ident"], "probability": 5, "time": time_limit, "treasure": 0,
+                        "reminder": 0, "score": 0}
         init_player_state(connection, player_state)
     else:
         # resume, load from database
         # check is there resume
-        sql_query = "SELECT screen_name, finish FROM game WHERE id=(SELECT max(id) FROM game)"
+        sql_query = "SELECT screen_name, location, finish FROM game WHERE id=(SELECT max(id) FROM game)"
         sql_fetch = database_execute(connection, sql_query)
         is_finish = sql_fetch[0]["finish"]
         screen_name = sql_fetch[0]["screen_name"]
@@ -683,6 +694,7 @@ def game(connection, resume=False):
     else:
         is_high_score = False
     play_score(player_state, shop_param["fuel_price"], score_money, score_emission, score_time, is_high_score)
+    save_player_state(connection, player_state, True)
 
 
 # ---------------------
@@ -707,6 +719,10 @@ def main():
             game(connection, True)
         elif select == "3":
             print_high_score(connection)
+        elif select == "4":
+            break
+        else:
+            print("Invalid option!")
 
 
 # end type 1: win. 2: time, 3: fuel and money, 4: coffee
