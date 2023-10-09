@@ -147,12 +147,12 @@ def play_detector(player_state: dict, probability_up: int, found: bool):
     else:
         clear_screen()
         print(format_player_state(player_state_ani))
-        print("Detecting..." + "...")
+        print("Detecting..." + " no luck...")
         print(detector_frame.replace("*", ""))
         time.sleep(1)
 
 
-def play_flying(dest_name, dest_country, emission, fuel_consumption, time_used, player_state):
+def play_flying(dest_name, dest_country, emission, fuel_consumption, reward, time_used, player_state):
     # time of flying animation is fixed time.
     ani_length = 60
     flying_time = 2  # time of playing animation (in second)
@@ -169,14 +169,17 @@ def play_flying(dest_name, dest_country, emission, fuel_consumption, time_used, 
     time_speed = time_used / flying_time / frame_rate  # time change per frame
     fuel_speed = fuel_consumption / flying_time / frame_rate  # fuel change per frame
     emission_speed = emission / flying_time / frame_rate  # emission change per frame
+    reward_speed = reward / flying_time / frame_rate  # money change per frame
 
     frame_count = 0
     traveled_distance = 0
 
+    # IMPORTANT, make a copy player_state for animation, other it will modify the original player_state!!!
     player_state_ani = copy.deepcopy(player_state)
     player_state_ani["fuel"] += fuel_consumption
     player_state_ani["time"] += time_used
     player_state_ani["emission"] -= emission
+    player_state_ani["money"] -= reward
 
     while frame_count <= frame_rate * flying_time:
         cloud_move_1 = int(frame_count / 5)
@@ -193,6 +196,7 @@ def play_flying(dest_name, dest_country, emission, fuel_consumption, time_used, 
         player_state_ani["fuel"] = round(player_state_ani["fuel"] - fuel_speed)
         player_state_ani["time"] = round(player_state_ani["time"] - time_speed)
         player_state_ani["emission"] = round(player_state_ani["emission"] + emission_speed)
+        player_state_ani["money"] = round(player_state_ani["money"] + reward_speed)
         print(format_player_state(player_state_ani))
         print(frame_plane)
         print("\n")
@@ -315,7 +319,7 @@ def play_win():
         print("\n" * (10 - i))
         for j in range(10 - i, 10):
             print(fireworks[j])
-        time.sleep(1)
+        time.sleep(0.2)
     print("CONGRATULATIONS!!! You just expand your airport!")
     input("(press Enter to continue)")
     play_credit()
@@ -344,8 +348,16 @@ def play_credit():
                     "Vitalii Virronen",
                     "Thien Luu",
                     "",
-                    "Creative Gameplay Programmer",
+                    "Graphic and Animation",
                     "Sheng Tai",
+                    "",
+                    "Story",
+                    "Vitalii Virronen",
+                    "",
+                    "Testing",
+                    "Loc Dang",
+                    "",
+                    "",
                     "",
                     "",
                     "Thank you for playing!"
@@ -356,8 +368,8 @@ def play_credit():
     input("(press Enter to continue)")
 
 
-def play_score(player_state: dict, fuel_price, score_money, score_emission, score_time, is_high_score: bool):
-    score = score_money + score_time - score_emission
+def play_score(player_state: dict, fuel_price, score_dict, is_high_score: bool):
+    score = sum(score_dict.values())
 
     player_state_ani = copy.deepcopy(player_state)
     play_time = 0.8
@@ -365,95 +377,72 @@ def play_score(player_state: dict, fuel_price, score_money, score_emission, scor
     frame_rate = 30
     interval = 1 / frame_rate
 
-    fuel_step = int(player_state_ani["fuel"] / play_time / frame_rate)
-    fuel_to_money = player_state_ani["fuel"] * fuel_price
-    fuel_to_money_step = int(fuel_to_money / play_time / frame_rate)
+    line_score_name = ""
+    line_score = ""
 
-    # animation fuel to money
+    # animation list
+    animation_names = ["time", "money", "emission"]
+
     if player_state_ani["fuel"] > 0:
+        fuel_step = int(player_state_ani["fuel"] / play_time / frame_rate)
+        fuel_to_money = player_state_ani["fuel"] * fuel_price
+        fuel_to_money_step = int(fuel_to_money / play_time / frame_rate)
         while True:
             clear_screen()
             print(format_player_state(player_state_ani))
-            if player_state_ani["fuel"] >= 0:
+            if player_state_ani["fuel"] > 0 and fuel_step >= 1 and fuel_to_money_step >= 1:
                 player_state_ani["fuel"] -= fuel_step
                 player_state_ani["money"] += fuel_to_money_step
             else:
                 player_state_ani["fuel"] = 0
-                player_state_ani["money"] = fuel_to_money + player_state["money"]
                 clear_screen()
                 print(format_player_state(player_state_ani))
+                print(line_score_name)
+                print(line_score)
                 break
             time.sleep(interval)
-
-    # animation money
-    if player_state_ani["money"] > 0:
         time.sleep(pause_time)
-        money_step = int(player_state_ani["money"] / play_time / frame_rate)
+
+    for animation_name in animation_names:
+        time_step = int(player_state_ani[animation_name] / play_time / frame_rate)
         while True:
             clear_screen()
             print(format_player_state(player_state_ani))
-            if player_state_ani["money"] >= 0:
-                player_state_ani["money"] -= money_step
+            print(line_score_name)
+            print(line_score)
+            # when value > 0, change and continue next loop.
+            if player_state_ani[animation_name] > 0 and time_step >= 1:
+                player_state_ani[animation_name] -= time_step
+            # when value = 0, go to next animation.
             else:
-                player_state_ani["money"] = 0
+                player_state_ani[animation_name] = 0
                 clear_screen()
                 print(format_player_state(player_state_ani))
+                print(line_score_name)
+                print(line_score)
                 break
             time.sleep(interval)
-
-    # animation emission
-    if player_state_ani["emission"] > 0:
+        if animation_name == "time":
+            split = ""
+        elif animation_name == "emission":
+            split = "\t-\t"
+        else:
+            split = "\t+\t"
+        line_score_name += split + animation_name
+        line_score += split + str(score_dict[animation_name])
         time.sleep(pause_time)
-        emission_step = int(player_state_ani["emission"] / play_time / frame_rate)
-        while True:
-            clear_screen()
-            print(format_player_state(player_state_ani))
-            if player_state_ani["emission"] >= 0:
-                player_state_ani["emission"] -= emission_step
-            else:
-                player_state_ani["emission"] = 0
-                clear_screen()
-                print(format_player_state(player_state_ani))
-                break
-            time.sleep(interval)
 
-    # animation time
-    if player_state_ani["time"] > 0:
-        time.sleep(pause_time)
-        time_step = int(player_state_ani["time"] / play_time / frame_rate)
-        while True:
-            clear_screen()
-            print(format_player_state(player_state_ani))
-            if player_state_ani["time"] >= 0:
-                player_state_ani["time"] -= time_step
-            else:
-                player_state_ani["time"] = 0
-                clear_screen()
-                print(format_player_state(player_state_ani))
-                break
-            time.sleep(interval)
-
-    # animation score
-    column = [f"{score_time}\t", f"+ {score_money}\t", f"- {score_emission}\t", f"= {score}"]
-    clear_screen()
-    print(format_player_state(player_state_ani))
-    print(f"{'Time'} + {'Money'} - {'Emission'}")
-    time.sleep(1)
-    for i in range(3):
+    for i in range(2):
         clear_screen()
         print(format_player_state(player_state_ani))
-        print(f"{'Time'} + {'Money'} - {'Emission'}")
         if i == 0:
-            print(column[0])
-        if i == 1:
-            print(column[0] + column[1])
-        if i == 2:
-            print(column[0] + column[1] + column[2])
-        time.sleep(1)
-    clear_screen()
-    print(format_player_state(player_state_ani))
-    print(f"{'Time'} + {'Money'} - {'Emission'}")
-    print(column[0] + column[1] + column[2] + column[3])
+            print(line_score_name)
+            print(line_score)
+        else:
+            print(line_score_name + "\tscore")
+            print(line_score + f"\t=\t{score}")
+        time.sleep(pause_time)
+
     if is_high_score:
         print("\nNEW HIGH SCORE!\n")
     input("(press Enter to continue)")
@@ -463,9 +452,9 @@ def play_intro():
     pass
 
 
-def main():
-    # test animation
-    player_state_ani = {"name": "test", "money": 11112, "fuel": 200000, "emission": 3333, "location": "LKPR",
+# test
+def test():
+    player_state_ani = {"name": "test", "money": 10, "fuel": 100, "emission": 100, "location": "LKPR",
                         "probability": 5, "time": 500, "treasure": 0}
 
     shop_param = {"fuel_price": 20,
@@ -480,6 +469,7 @@ def main():
     #             time_used=10000,
     #             player_state=player_state_ani)
 
+    score_dict = {"money": 100, "time": 200, "emission": 300, "total": 300}
     # play_detector(player_state_ani, 4, True)
     # play_rolling_dice(player_state_ani,5)
     # play_coffee_ending()
@@ -487,7 +477,8 @@ def main():
     # play_money_ending()
     # play_win()
     # play_credit()
+    play_score(player_state_ani, 20, score_dict, True)
 
 
 if __name__ == "__main__":
-    main()
+    test()

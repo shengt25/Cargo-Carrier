@@ -1,8 +1,9 @@
 import mysql.connector
-
+import sys, os
 from animation import *
-from geopy.distance import distance as geo_distance
+from geopy.distance import distance as geo_distance  # prevent shadow_name warning (distance is name of variable)
 from story import get_story
+
 
 # ---------------------
 # UTILITIES
@@ -48,6 +49,25 @@ def second_to_dhm(seconds: int) -> tuple[int, int, int]:
     hour = int(seconds / 3600 - day * 24)
     minute = int(seconds / 60 - hour * 60 - day * 24 * 60)
     return day, hour, minute
+
+
+def notify_experience():
+    try:
+        terminal_width = os.get_terminal_size()[0]
+    except:
+        terminal_width = -1
+    try:
+        is_idle = "idlelib" in sys.modules
+    except:
+        print("e")
+        is_idle = True
+    if terminal_width < 0:
+        print("Please use terminal environment for a better experience, thank you!")
+    if 0 < terminal_width < 120:
+        print("Please adjust your terminal width wider than 120 for a better experience, thank you!")
+    if is_idle:
+        print("Please use terminal environment for a better experience, thank you!")
+    input("(press Enter to continue)")
 
 
 # ---------------------
@@ -112,7 +132,7 @@ def get_airports_distance(connection, first_airport_icao: str, second_airport_ic
     return round(airports_distance)
 
 
-def get_airports_in_range(connection, plane_param, player_state: dict) -> tuple[list, bool]:
+def get_airports_in_range(connection, plane_param, player_state: dict) -> tuple[dict, list, list, bool]:
     """
     Return airports in order, by distance
     :param plane_param: Plane's fuel, speed, etc.
@@ -129,49 +149,99 @@ def get_airports_in_range(connection, plane_param, player_state: dict) -> tuple[
     airport_info_list = database_execute(connection, sql_query)
     player_icao = player_state["location"]
     airports_in_range = []
+    airports_out_of_range = []
+    airport_now = None
 
-    # mark the special fail, no time to fly
-    flag_no_time = False
+    # assume no time to fly anywhere, will check is it true, later.
+    flag_no_time = True
 
     for airport_info in airport_info_list:
         dest_icao = airport_info["ident"]
-        if dest_icao != player_icao:
+        if dest_icao == player_icao:
+            airport_now = airport_info
+        else:
             distance = get_airports_distance(connection, player_icao, dest_icao)
+            airport_info["distance"] = distance
+            airport_info["time"] = round(distance / plane_param["speed"] * 3600)  # time is in second
+            airport_info["fuel_consumption"] = round(distance * plane_param["fuel_consumption"])
+            airport_info["emission"] = round(distance * plane_param["emission"] / 1000)
+            airport_info["reward"] = round(airport_info["distance"] * plane_param["reward"])
+
             if distance <= range_by_fuel and distance <= range_by_time:
-                if distance <= range_by_time and flag_no_time == True:
-                    flag_no_time = True
-                airport_info["distance"] = distance
-                airport_info["time"] = round(distance / plane_param["speed"] * 3600)  # time is in second
-                airport_info["fuel_consumption"] = round(distance * plane_param["fuel_consumption"])
-                airport_info["emission"] = round(distance * plane_param["emission"] / 1000)
+                # if anywhere is in range of time, then there's time to fly somewhere, so, set flag_no_time to False
+                if distance <= range_by_time and flag_no_time is True:
+                    flag_no_time = False
                 airports_in_range.append(airport_info)
+            else:
+                airports_out_of_range.append(airport_info)
     airports_in_range.sort(key=lambda x: x["distance"])
-    return airports_in_range, flag_no_time
+    return airport_now, airports_in_range, airports_out_of_range, flag_no_time
+
+
+def mark_visit_airport(connection, selected_airport):
+    if selected_airport["visit"] == 0:
+        sql_query = "UPDATE game_airport SET visit=1 WHERE ident=%s"
+        database_execute(connection, sql_query, (selected_airport["ident"],))
+
+
+def format_airport_list(airport_list: list, plane_param, airport_now=False) -> list:
+    a = "<"  # align to left
+    w1 = 8  # align width small
+    w2 = 20  # align width medium
+    w3 = 55  # align width big
+    output_list = []
+    for airport_info in airport_list:
+        if airport_now:
+            # airport now at
+            column_name = f"{airport_info['name']} ({airport_info['country_name']})"
+            column_icao = f"{airport_info['ident']}"
+            if airport_info['visit'] == 1:
+                column_name = "✔ " + column_name
+            elif airport_info['visit'] == 2:
+                column_name = "* " + column_name
+            else:
+                raise Exception("You are at here but not visit? This is a bug.")
+            output = (f"{column_name:{a}{w3}} {column_icao:{a}{w1}} {'-':{a}{w2}} {'-':{a}{w1}} "
+                      f"{'-':{a}{w1}} {'-':{a}}")
+        else:
+            # other airports
+            hh, mm = second_to_hm(airport_info["time"])
+            column_name = f"{airport_info['name']} ({airport_info['country_name']})"
+            column_distance = f"{airport_info['distance']} km ({airport_info['fuel_consumption']} kg)"
+            column_icao = f"{airport_info['ident']}"
+            column_eta = f"{hh}h {mm}m"
+            column_reward = f"€{airport_info['reward']}"
+            column_emission = f"{airport_info['emission']} kg"
+            # home, visited or not
+            if airport_info['visit'] == 1:
+                column_name = "✔ " + column_name
+            elif airport_info['visit'] == 2:
+                column_name = "* " + column_name
+            else:
+                column_name = "  " + column_name
+            output = (f"{column_name:{a}{w3}} {column_icao:{a}{w1}} {column_distance:{a}{w2}} {column_eta:{a}{w1}} "
+                      f"{column_reward:{a}{w1}} {column_emission:{a}}")
+
+        output_list.append(output)
+    return output_list
 
 
 # ---------------------
 # PLAYER STATE
 # ---------------------
-def save_player_state(connection, player_state: dict, is_finish=False) -> None:
+def save_player_state(connection, player_state: dict) -> None:
     """
     Save player state to database. (money, fuel, emission, location, probability, time)
-    :param is_finish:
     :param connection: SQL connection
     :param player_state: Player state dictionary
-    :param init: Initial saving of a new game?
     """
-    if is_finish:
-        sql_query = (
-            "UPDATE game SET money=%s,fuel=%s, emission=%s, location=%s, probability=%s, treasure=%s, time=%s, score=%s "
-            "WHERE screen_name=%s AND finish=1")
-    else:
-        sql_query = (
-            "UPDATE game SET money=%s,fuel=%s, emission=%s, location=%s, probability=%s, treasure=%s, time=%s, score=%s "
-            "WHERE screen_name=%s AND finish=0")
+    sql_query = ("UPDATE game SET money=%s, fuel=%s, emission=%s, location=%s, probability=%s, "
+                 "treasure=%s, time=%s, score=%s, finish=%s "
+                 "WHERE screen_name=%s AND id=(SELECT MAX(id) from game WHERE screen_name=%s)")
 
     parameter = (player_state["money"], player_state["fuel"], player_state["emission"], player_state["location"],
                  player_state["probability"], player_state["treasure"], player_state["time"], player_state["score"],
-                 player_state["name"])
+                 player_state["finish"], player_state["name"], player_state["name"])
     database_execute(connection, sql_query, parameter)
 
 
@@ -200,30 +270,6 @@ def load_player_state(connection, player_name: str) -> dict:
     return player_state
 
 
-def format_player_state(player_state: dict) -> str:
-    """Returns the player info in formatted string (ready for print). Can be used as header in other info print."""
-    a = "^"  # align to center
-    w1 = 12  # align width small
-    w2 = 15  # align width medium
-    w3 = 20  # align width big
-    money = player_state['money']
-    fuel = player_state['fuel']
-    emission = player_state['emission']
-    location = player_state['location']
-    if player_state["treasure"] == 1:
-        probability = "N/A"
-    else:
-        probability = str(player_state['probability'] / 10) + "%"
-    dd, hh, mm = second_to_dhm(player_state['time'])
-    time_left = f"{dd}d {hh}h {mm}m"
-    info1 = (f"{'Time Left':{a}{w1}} | {'Money':{a}{w1}} | {'Fuel':{a}{w1}} | "
-             f"{'CO2 Emission':{a}{w2}} | {'Location':{a}{w2}} | {'Detector':{a}{w1}}")
-    info2 = (f"{time_left:{a}{w1}} | {money:{a}{w1}} | {fuel:{a}{w1}} | "
-             f"{emission:{a}{w2}} | {location:{a}{w2}} | {probability:{a}{w1}}")
-    split = "-" * len(info1)
-    return "\n".join([split, info1, info2, split])
-
-
 # ---------------------
 # GOAL
 # ---------------------
@@ -246,7 +292,8 @@ def get_highest_score(connection):
 
 
 def print_high_score(connection):
-    sql_query = "SELECT screen_name, money, fuel, emission, time, treasure, score FROM game ORDER BY score DESC LIMIT 10"
+    sql_query = ("SELECT screen_name, money, fuel, emission, time, "
+                 "treasure, score FROM game ORDER BY score DESC LIMIT 10")
     data_dict = database_execute(connection, sql_query)
     a = "^"  # align to center
     w1 = 12  # align width small
@@ -280,7 +327,8 @@ def calculate_score(player_state, score_param):
     score_time = round(score_param["time"] * player_state["time"])
     score = score_money + score_time - score_emission
     player_state["score"] = score
-    return score_money, score_emission, score_time, score
+    score_dict = {"money": score_money, "time": score_time, "emission": score_emission}
+    return score_dict, score
 
 
 def end_game(end_type):
@@ -302,9 +350,10 @@ def end_game(end_type):
 # ---------------------
 
 
-def before_shop(current_airport_info: dict, plane_param: dict, before_shop_param: dict, player_state: dict):
+def arrive(current_airport_info: dict, plane_param: dict, before_shop_param: dict, player_state: dict):
     """
     Player detects treasure and play dice game here.
+    :param current_airport_info:
     :param plane_param:
     :param before_shop_param:
     :param player_state:
@@ -411,7 +460,7 @@ def before_shop(current_airport_info: dict, plane_param: dict, before_shop_param
             input("(press Enter to continue)")
         welcome_message = (f"So, make you decision, €{before_shop_param['dice_game_cost']} to play "
                            f"or I give you {fuel_back} kg fuel back")
-        
+
 
 def shop(player_state: dict, current_airport_info: dict, shop_param: dict) -> int:
     """
@@ -428,7 +477,7 @@ def shop(player_state: dict, current_airport_info: dict, shop_param: dict) -> in
         player_state["reminder"] = 1
 
     coffee_count = 0  # for fun
-    welcome_message = f"Ok {player_state['name']}, what else can I help?"
+    welcome_message = f"Ok {player_state['name']}, what else can I help?\n"
     # print menu, wait for selection, until player choose to leave.
     while True:
         clear_screen()
@@ -510,47 +559,51 @@ def departure(connection, current_airport_info, shop_param, plane_param, player_
     :param player_state:
     :return: Ending type(except for 0), Info of next airport. If
     """
-    # todo when don't have any dest, prompt time, or money, or fuel, or fail!
     a = "<"  # align to left
     w1 = 8  # align width small
     w2 = 20  # align width medium
     w3 = 55  # align width big
 
+    welcome_message = "Ready for working? Choose your next cargo destination from the list and get ready for takeoff!\n"
+    header = (f"{'Airport (Country)    ✔: Visited    *:Home':{a}{w3}} "
+              f"{'ICAO':{a}{w1}} {'Distance (Fuel)':{a}{w2}} {'ETA':{a}{w1}} {'Reward':{a}{w1}} {'Emission':{a}}")
+    split_header = len(header) * "-"
+
+    split_here = "You Are Here"
+    split_out = f"{'Out of Reach':.<{len(header)}}"
+    split_available = f"{'Available':.<{len(header)}}"
+    airport_now, airport_avail_list, airport_out_list, flag_no_time = get_airports_in_range(connection, plane_param,
+                                                                                            player_state)
+    airport_avail_detail_list = format_airport_list(airport_avail_list, plane_param)
+    airport_out_detail_list = format_airport_list(airport_out_list, plane_param)
+    airport_now_detail = format_airport_list([airport_now], plane_param, True)[0]
+
     while True:
-        header = f"{'Airport (Country)    ✔: Visited    *:Home':{a}{w3}} {'ICAO':{a}{w1}} {'Distance (Fuel)':{a}{w2}} {'ETA':{a}{w1}} {'Emission':{a}}"
         print(format_player_state(player_state))
+        print(welcome_message)
+        print("\n")
         print(header)
-        print(len(header) * "-")
-
-        airport_info_list, flag_no_time = get_airports_in_range(connection, plane_param, player_state)
-        for airport_info in airport_info_list:
-            hh, mm = second_to_hm(airport_info['time'])
-            column_name = f"{airport_info['name']} ({airport_info['country_name']})"
-            column_distance = f"{airport_info['distance']} km ({airport_info['fuel_consumption']} kg)"
-            column_icao = f"{airport_info['ident']}"
-            column_eta = f"{hh}h {mm}m"
-            column_emission = f"{airport_info['emission']} kg"
-
-            if airport_info['visit'] == 1:
-                column_name = "✔ " + column_name
-            elif airport_info['visit'] == 2:
-                column_name = "* " + column_name
-            else:
-                column_name = "  " + column_name
-
-            output = f"{column_name:{a}{w3}} {column_icao:{a}{w1}} {column_distance:{a}{w2}} {column_eta:{a}{w1}} {column_emission:{a}}"
-            print(output)
+        print(split_header)
+        print(split_here)
+        print(airport_now_detail)
+        print(split_available)
+        for airport_detail in airport_avail_detail_list:
+            print(airport_detail)
+        print(split_out)
+        for airport_detail in airport_out_detail_list:
+            print(airport_detail)
 
         # if nowhere to go
-        if not airport_info_list:
+        if not airport_avail_list:
+            # game end: no time
             if flag_no_time:
                 return 2, {}
             else:
-                # check can player still go anywhere if use all money to buy fuel.
+                # check can player still go anywhere if you use all money to buy fuel.
                 # if not, then fail, otherwise reminder player go to shop.
                 player_state_temp = copy.deepcopy(player_state)
                 player_state_temp["fuel"] += round(player_state_temp["money"] / shop_param["fuel_price"])
-                airport_info_list_temp, _ = get_airports_in_range(connection, plane_param, player_state_temp)
+                _, airport_info_list_temp, _, _ = get_airports_in_range(connection, plane_param, player_state_temp)
                 if not airport_info_list_temp:
                     return 3, {}
                 else:
@@ -560,9 +613,7 @@ def departure(connection, current_airport_info, shop_param, plane_param, player_
         print("\nYour next destination, enter ICAO, or enter s to go back shop:")
         select = input("> ")
 
-        selected_airport = {}
-        is_valid_icao = False
-
+        # go back to shop when input s
         if select == "s":
             ending_type = shop(player_state, current_airport_info, shop_param)
             if ending_type == 0:
@@ -570,11 +621,15 @@ def departure(connection, current_airport_info, shop_param, plane_param, player_
             else:
                 return ending_type, {}
 
-        for airport_info in airport_info_list:
+        selected_airport = {}
+        is_valid_icao = False
+        for airport_info in airport_avail_list:
             if select == airport_info['ident']:
                 is_valid_icao = True
                 selected_airport = airport_info
-                break
+                break  # break for-loop when icao is valid and continue
+
+        # check is icao valid, if not, go back to while-loop
         if not is_valid_icao:
             print("Not a valid destination, try again")
             input("(press Enter to continue)")
@@ -582,14 +637,17 @@ def departure(connection, current_airport_info, shop_param, plane_param, player_
             player_state["time"] -= selected_airport["time"]
             player_state["fuel"] -= selected_airport["fuel_consumption"]
             player_state["emission"] += selected_airport["emission"]
-            break
-    play_flying(dest_name=selected_airport["name"],
-                dest_country=selected_airport['country_name'],
-                fuel_consumption=selected_airport["fuel_consumption"],
-                emission=selected_airport["emission"],
-                time_used=selected_airport["time"],
-                player_state=player_state)
-    return 0, selected_airport
+            player_state["money"] += selected_airport["reward"]
+            mark_visit_airport(connection, selected_airport)
+
+            play_flying(dest_name=selected_airport["name"],
+                        dest_country=selected_airport['country_name'],
+                        fuel_consumption=selected_airport["fuel_consumption"],
+                        emission=selected_airport["emission"],
+                        time_used=selected_airport["time"],
+                        player_state=player_state,
+                        reward=selected_airport["reward"])
+            return 0, selected_airport
 
 
 # ---------------------
@@ -597,15 +655,21 @@ def departure(connection, current_airport_info, shop_param, plane_param, player_
 # ---------------------
 
 
-def game(connection, resume=False):
+def game(connection, resume=False, debug=False):
     # ---------------------
     # CONFIG
     # ---------------------
 
-    # plane fuel consumption: kg/km, speed: km/h, emission: g/km
+    # plane
+    # fuel consumption: kg/km,
+    # speed: km/h,
+    # emission: g/km
+    # reward: euro/km
+
     plane_param = {"fuel_consumption": 2,
                    "speed": 800,
-                   "emission": 100}
+                   "emission": 100,
+                   "reward": 10}
 
     before_shop_param = {"dice_game_cost": 20,
                          "dice_bonus_percent": 1,
@@ -618,6 +682,8 @@ def game(connection, resume=False):
                          "detector_bonus_per_thousand": 0.5,
 
                          "dividend": 500}
+    # every [dividend] km, add percentage to [fuel_back_percent]/[dice_bonus_percent]
+    # for example: every 500km, increase 1 percentage to fuel back and dice bonus.
 
     shop_param = {"fuel_price": 20,
                   "win_money": 10000}
@@ -626,109 +692,147 @@ def game(connection, resume=False):
                    "emission": 1,
                    "time": 0.01}
 
-    # every [dividend] km, add percentage to [fuel_back_percent]/[dice_bonus_percent]
-    # for example: every 500km, add 1 percentage to fuel back and dice bonus.
-
     # days in game
     time_limit_days = 20
     init_money = 1000
     init_fuel = 10000
 
     # ---------------------
-    # GAME INIT
+    # GAME INIT (NEW GAME OR CONTINUE GAME)
     # ---------------------
 
     # new game or resume
     if not resume:
+        # new game
         # input player name
-        print("Hello, what's your name?")
+        print("\nHello, what's your name?")
         player_name = input("> ")
         time_limit = time_limit_days * 24 * 3600
-        # new game, init, and save
+        #
         current_airport_info = generate_random_airports(connection, 25)
         player_state = {"name": player_name, "money": init_money, "fuel": init_fuel, "emission": 0,
                         "location": current_airport_info["ident"], "probability": 5, "time": time_limit, "treasure": 0,
-                        "reminder": 0, "score": 0}
+                        "reminder": 0, "score": 0, "finish": 0}
         init_player_state(connection, player_state)
     else:
         # resume, load from database
         # check is there resume
-        sql_query = "SELECT screen_name, location, finish FROM game WHERE id=(SELECT max(id) FROM game)"
+        sql_query = "SELECT screen_name, location, finish FROM game WHERE id=(SELECT MAX(id) FROM game)"
         sql_fetch = database_execute(connection, sql_query)
         is_finish = sql_fetch[0]["finish"]
         screen_name = sql_fetch[0]["screen_name"]
         if is_finish == 0:
-            player_state = load_player_state(connection, screen_name)
-            player_state["name"] = screen_name
-            sql_query = "SELECT name, country_name, visit FROM game_airport WHERE ident=%s"
-            current_airport_info = database_execute(connection, sql_query, (player_state["location"],))[0]
-            current_airport_info["distance"] = 0
+            print(f"You have a game save whose name is {screen_name}, do you want to continue? (Y/n)")
+            select = input("> ")
+            if select == "y" or select == "Y" or select == "":
+                print("Game loaded, good luck!")
+                player_state = load_player_state(connection, screen_name)
+                player_state["name"] = screen_name
+                sql_query = "SELECT name, country_name, visit FROM game_airport WHERE ident=%s"
+                current_airport_info = database_execute(connection, sql_query, (player_state["location"],))[0]
+                # reset last travel distance to 0, because we don't know that from game save
+                current_airport_info["distance"] = 0
+            else:
+                print("Returning to main menu.")
+                input("(press Enter to continue)")
+                return 0
         else:
-            print("Game resume not found!")
+            print("Game save not found, returning to main menu")
+            input("(press Enter to continue)")
             return 1
 
     # ---------------------
-    # GAME LOOP
+    # GAME START
     # ---------------------
 
     while True:
-        end_type = shop(player_state=player_state, current_airport_info=current_airport_info, shop_param=shop_param)
+        # first step: go to shop
+        end_type = shop(player_state=player_state,
+                        current_airport_info=current_airport_info,
+                        shop_param=shop_param)
+
+        # save game in between, and check is game over
         save_player_state(connection, player_state)
         if end_type != 0:
             end_game(end_type)
             break
 
-        end_type, current_airport_info = departure(connection=connection, current_airport_info=current_airport_info,
-                                                   shop_param=shop_param, plane_param=plane_param,
+        # second step: departure to next airport.
+        end_type, current_airport_info = departure(connection=connection,
+                                                   current_airport_info=current_airport_info,
+                                                   shop_param=shop_param,
+                                                   plane_param=plane_param,
                                                    player_state=player_state)
+
+        # save game in between, and check is game over
         save_player_state(connection, player_state)
         if end_type != 0:
             end_game(end_type)
             break
-        before_shop(current_airport_info=current_airport_info, plane_param=plane_param,
-                    before_shop_param=before_shop_param,
-                    player_state=player_state)
+
+        # third step: arrive new airport
+        arrive(current_airport_info=current_airport_info,
+               plane_param=plane_param,
+               before_shop_param=before_shop_param,
+               player_state=player_state)
+
+        # save game in between, no checking because game can't be over now
         save_player_state(connection, player_state)
+
+        # loop back to beginning
 
     # ---------------------
     # GAME END
     # ---------------------
 
+    # out of loop game ended
+
+    # high score
     last_high_score = get_highest_score(connection)
-    score_money, score_emission, score_time, score = calculate_score(player_state, score_param)
+    score_dict, score = calculate_score(player_state, score_param)
+
+    # save score and player finished game to database
+    player_state["finish"] = 1
+    player_state["score"] = score
+    save_player_state(connection, player_state)
+
+    # play ending score animation
     if last_high_score < score:
         is_high_score = True
     else:
         is_high_score = False
-    play_score(player_state, shop_param["fuel_price"], score_money, score_emission, score_time, is_high_score)
-    save_player_state(connection, player_state, True)
+    play_score(player_state, shop_param["fuel_price"], score_dict, is_high_score)
 
 
 # ---------------------
 # BEFORE GAME MENU
 # ---------------------
 def main():
+    # notify user to adjust or change to terminal
+    notify_experience()
+
     # init database connection
     connection = mysql.connector.connect(
         host="127.0.0.1",
         port=3306,
-        database="db_name",
-        user="user_name",
-        password="pwd",
+        database="flight_game",
+        user="root",
+        password="metro",
         autocommit=True)
-    
+
     # Give player option to read story or not
+    clear_screen()
     while True:
-        story = input("Do you want to read background story of this game? (Y/N): ").upper()
+        story = input("Do you want to read background story of this game? (Y/n): ").upper()
         if story == 'N':
             break
-        elif story == 'Y':
+        elif story == 'Y' or story == '':  # make Y a default option
             for line in get_story():
                 print(line)
             break
         else:
             print("Invalid option! Please enter only 'y' or 'n'")
-    
+    print("\n")
     print("-------------------------------------------------------------------------------")
     print("All right! Now let's get starting your journey")
     print("-------------------------------------------------------------------------------")
@@ -748,6 +852,6 @@ def main():
             print("Invalid option!")
 
 
-# end type 1: win. 2: time, 3: fuel and money, 4: coffee
+# note: end type 1: win. 2: time, 3: fuel and money, 4: coffee
 if __name__ == "__main__":
     main()
