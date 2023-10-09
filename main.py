@@ -277,12 +277,12 @@ def load_player_state(connection, player_name: str) -> dict:
 # ---------------------
 def goal_reminder(player_state: dict):
     print(format_player_state(player_state))
-    print("Congratulations! You already have enough money for expanding your airport!")
+    print("Congratulations! You already have enough money for opening your airport!")
     print("You can choose go home airport or continue earning money (or losing money).")
     print("But be careful with time... and your money")
     print(f"Anyway, you can always make your choice.")
 
-    print("\nYou can now choose EXPAND MY AIRPORT at home, to finish game ")
+    print("\nYou can now choose OPEN MY OWN AIRPORT at home, to finish game ")
     print("Your home airport is marked with *")
     input("(press Enter to continue)")
 
@@ -500,7 +500,7 @@ def shop(player_state: dict, current_airport_info: dict, shop_param: dict) -> in
 
         # at home
         if current_airport_info["visit"] == 2:
-            print("\n1. Buy fuel\n2. Continue my journey\n3. Have some coffee\n4. Expand my airport")
+            print("\n1. Buy fuel\n2. Continue my journey\n3. Have some coffee\n4. Open my own airport")
         else:
             print("\n1. Buy fuel\n2. Continue my journey\n3. Have some coffee")
         select = input("> ")
@@ -551,7 +551,7 @@ def shop(player_state: dict, current_airport_info: dict, shop_param: dict) -> in
             if player_state["money"] < shop_param["win_money"]:
                 print("Well, you don't have enough money.")
                 print("\nReminder:")
-                print(f"Your main goal is to earn €{shop_param['win_money']} to expand your airport.")
+                print(f"Your main goal is to earn €{shop_param['win_money']} to open your own airport.")
                 print(f"But now you only have €{player_state['money']}, come back later.")
                 input("(press Enter to continue)")
             else:
@@ -708,11 +708,11 @@ def game(connection, resume=False, debug=False):
                    "emission": 1,
                    "time": 0.01}
 
-    # days in game
-    time_limit_days = 20
+    time_limit_days = 20  # days in game
     init_money = 1000
     init_fuel = 1000
     init_probability = 5
+    num_of_airport = 30
     # ---------------------
     # GAME INIT (NEW GAME OR CONTINUE GAME)
     # ---------------------
@@ -725,7 +725,7 @@ def game(connection, resume=False, debug=False):
         player_name = input("> ")
         time_limit = time_limit_days * 24 * 3600
         #
-        current_airport_info = generate_random_airports(connection, 25)
+        current_airport_info = generate_random_airports(connection, num_of_airport)
         player_state = {"name": player_name, "money": init_money, "fuel": init_fuel, "emission": 0,
                         "location": current_airport_info["ident"], "probability": init_probability, "time": time_limit,
                         "treasure": 0, "reminder": 0, "score": 0, "finish": 0}
@@ -829,7 +829,7 @@ def game(connection, resume=False, debug=False):
 # ---------------------
 def main():
     # init database connection
-    use_local_database = True
+    use_local_database = False
 
     if use_local_database:
         db_host = "127.0.0.1"
@@ -858,20 +858,21 @@ def main():
         if story == 'N':
             break
         elif story == 'Y' or story == '':  # make Y a default option
+            # print(get_story())
             for line in get_story():
                 print(line)
             break
         else:
             print("Invalid option! Please enter only 'y' or 'n'")
     print("\n")
+    print("-" * 80)
     print("Objective:")
-    print("Deliver cargo to earn, buy fuel to fly, keep low emission (calculated for final score)")
-    print("Make choice with risk and reward.")
-    print("Also, visit more airports to find special treasure! (with a treasure detector)")
-    print("\n")
-    print("-------------------------------------------------------------------------------")
+    print("1. Deliver cargo to earn, buy fuel to fly, keep low emission (calculated for final score)")
+    print("2. Make choice when delivering, with risk and reward.")
+    print("3. Visit new airports to find special treasure! (with a treasure detector)")
+    print("-" * 80)
     print("All right! Now let's get starting your journey")
-    print("-------------------------------------------------------------------------------")
+    print("-" * 80)
 
     while True:
         print("1.New Game\n2.Continue\n3.High Score\n4.Exit")

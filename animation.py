@@ -322,7 +322,7 @@ def play_win():
         for j in range(10 - i, 10):
             print(fireworks[j])
         time.sleep(0.2)
-    print("CONGRATULATIONS!!! You just expanded your airport!")
+    print("CONGRATULATIONS!!! You just opened your own airport! Tiny, but lovely!")
     print("Finally, your dream came true!")
     input("(press Enter to continue)")
     play_credit()
