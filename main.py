@@ -747,9 +747,10 @@ def game(connection, resume=False, debug=False):
 
     while True:
         # first step: go to shop
-        end_type = shop(player_state=player_state,
-                        current_airport_info=current_airport_info,
-                        shop_param=shop_param)
+        end_type = shop(
+            player_state=player_state,
+            current_airport_info=current_airport_info,
+            shop_param=shop_param)
 
         # save game in between, and check is game over
         save_player_state(connection, player_state)
@@ -758,11 +759,12 @@ def game(connection, resume=False, debug=False):
             break
 
         # second step: departure to next airport.
-        end_type, current_airport_info = departure(connection=connection,
-                                                   current_airport_info=current_airport_info,
-                                                   shop_param=shop_param,
-                                                   plane_param=plane_param,
-                                                   player_state=player_state)
+        end_type, current_airport_info = departure(
+            connection=connection,
+            current_airport_info=current_airport_info,
+            shop_param=shop_param,
+            plane_param=plane_param,
+            player_state=player_state)
 
         # save game in between, and check is game over
         save_player_state(connection, player_state)
@@ -771,12 +773,13 @@ def game(connection, resume=False, debug=False):
             break
 
         # third step: arrive new airport
-        arrive(current_airport_info=current_airport_info,
-               plane_param=plane_param,
-               before_shop_param=before_shop_param,
-               player_state=player_state)
+        arrive(
+            current_airport_info=current_airport_info,
+            plane_param=plane_param,
+            before_shop_param=before_shop_param,
+            player_state=player_state)
 
-        # save game in between, no checking because game can't be over now
+        # save game in between, (but no game over check here because game can't be over here)
         save_player_state(connection, player_state)
 
         # loop back to beginning
