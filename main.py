@@ -52,6 +52,7 @@ def second_to_dhm(seconds: int) -> tuple[int, int, int]:
 
 
 def notify_experience():
+    notify = False
     try:
         terminal_width = os.get_terminal_size()[0]
     except:
@@ -59,15 +60,15 @@ def notify_experience():
     try:
         is_idle = "idlelib" in sys.modules
     except:
-        print("e")
         is_idle = True
-    if terminal_width < 0:
+    if terminal_width < 0 or is_idle:
+        notify = True
         print("Please use terminal environment for a better experience, thank you!")
     if 0 < terminal_width < 120:
+        notify = True
         print("Please adjust your terminal width wider than 120 for a better experience, thank you!")
-    if is_idle:
-        print("Please use terminal environment for a better experience, thank you!")
-    input("(press Enter to continue)")
+    if notify:
+        input("(press Enter to continue)")
 
 
 # ---------------------
@@ -164,17 +165,18 @@ def get_airports_in_range(connection, plane_param, player_state: dict) -> tuple[
             airport_info["distance"] = distance
             airport_info["time"] = round(distance / plane_param["speed"] * 3600)  # time is in second
             airport_info["fuel_consumption"] = round(distance * plane_param["fuel_consumption"])
-            airport_info["emission"] = round(distance * plane_param["emission"] / 1000)
+            airport_info["emission"] = round(distance * plane_param["emission"])
             airport_info["reward"] = round(airport_info["distance"] * plane_param["reward"])
 
-            if distance <= range_by_fuel and distance <= range_by_time:
-                # if anywhere is in range of time, then there's time to fly somewhere, so, set flag_no_time to False
-                if distance <= range_by_time and flag_no_time is True:
-                    flag_no_time = False
-                airports_in_range.append(airport_info)
-            else:
-                airports_out_of_range.append(airport_info)
+            # if anywhere is in range of time, then there's time to fly somewhere, so, set flag_no_time to False
+            if distance <= range_by_time:
+                flag_no_time = False
+                if distance <= range_by_fuel:
+                    airports_in_range.append(airport_info)
+                else:
+                    airports_out_of_range.append(airport_info)
     airports_in_range.sort(key=lambda x: x["distance"])
+    airports_out_of_range.sort(key=lambda x: x["distance"])
     return airport_now, airports_in_range, airports_out_of_range, flag_no_time
 
 
@@ -184,7 +186,7 @@ def mark_visit_airport(connection, selected_airport):
         database_execute(connection, sql_query, (selected_airport["ident"],))
 
 
-def format_airport_list(airport_list: list, plane_param, airport_now=False) -> list:
+def format_airport_list(airport_list: list, airport_now=False) -> list:
     a = "<"  # align to left
     w1 = 8  # align width small
     w2 = 20  # align width medium
@@ -275,12 +277,12 @@ def load_player_state(connection, player_name: str) -> dict:
 # ---------------------
 def goal_reminder(player_state: dict):
     print(format_player_state(player_state))
-    print("Congratulations! You already have enough money for expanding your airport!")
+    print("Congratulations! You already have enough money for opening your airport!")
     print("You can choose go home airport or continue earning money (or losing money).")
     print("But be careful with time... and your money")
     print(f"Anyway, you can always make your choice.")
 
-    print("\nYou can now choose EXPAND MY AIRPORT at home, to finish game ")
+    print("\nYou can now choose OPEN MY OWN AIRPORT at home, to finish game ")
     print("Your home airport is marked with *")
     input("(press Enter to continue)")
 
@@ -318,6 +320,7 @@ def print_high_score(connection):
         data = (f"{name:{a}{w1}} | {score:{a}{w1}} | {money:{a}{w1}} | {fuel:{a}{w1}} | "
                 f"{emission:{a}{w2}} | {time_left:{a}{w2}} | {treasure_status:{a}{w1}}")
         print(data)
+    print("\n")
     return
 
 
@@ -330,6 +333,10 @@ def calculate_score(player_state, score_param):
     score_dict = {"money": score_money, "time": score_time, "emission": score_emission}
     return score_dict, score
 
+
+# ---------------------
+# MAIN GAME MODULE
+# ---------------------
 
 def end_game(end_type):
     # end type 1: win. 2: time, 3: fuel and money, 4: coffee
@@ -345,59 +352,54 @@ def end_game(end_type):
         raise Exception("Ending not defined")
 
 
-# ---------------------
-# MAIN GAME MODULE
-# ---------------------
-
-
-def arrive(current_airport_info: dict, plane_param: dict, before_shop_param: dict, player_state: dict):
+def arrive(current_airport_info: dict, arrive_param: dict, player_state: dict):
     """
     Player detects treasure and play dice game here.
     :param current_airport_info:
-    :param plane_param:
-    :param before_shop_param:
+    :param arrive_param:
     :param player_state:
     :return:
     """
+    # fix update current airport ICAO
+    player_state['location'] = current_airport_info['ident']
+
     # check is this unvisited airport
     airport_name = current_airport_info['name']
     country_name = current_airport_info['country_name']
     distance_last_fly = current_airport_info['distance']
 
     # set up bonus
-    fuel_back_percent = round(
-        distance_last_fly / before_shop_param["dividend"] * before_shop_param["fuel_bonus_percent"] + before_shop_param[
-            "fuel_base_percent"], 2)
-    fuel_back = round(fuel_back_percent * distance_last_fly * plane_param["fuel_consumption"] / 100)
-
-    dice_bonus_percent = round(distance_last_fly / before_shop_param["dividend"], 2)
+    dice_bonus_percent = round(distance_last_fly / arrive_param["dividend"], 2)
 
     # detect treasure when it is not yet done
     if player_state["treasure"] == 0:
         probability_up = 0
         if current_airport_info['visit'] == 0:
             # set up probability, round to int, (use num ‰)
-            probability_bonus = distance_last_fly / before_shop_param["dividend"] * before_shop_param[
-                "detector_bonus_per_thousand"]
-            probability_up = round(before_shop_param["detector_base_per_thousand"] + probability_bonus)
+            probability_bonus = distance_last_fly / arrive_param["dividend"] * arrive_param[
+                "detector_bonus_per_10k"]
+            probability_up = round(arrive_param["detector_base_per_10k"] + probability_bonus)
             player_state["probability"] += probability_up
 
-        detection = random.randint(1, 1000)
+        # the probability is per 10 thousand (such as 52/10000, which equivalent to 0.52%)
+        detection = random.randint(1, 10000)
         if detection <= player_state["probability"]:
             # detected
-            player_state["money"] += before_shop_param["treasure_value"]
+            player_state["money"] += arrive_param["treasure_value"]
             player_state["treasure"] = 1
             player_state["probability"] = -1
             play_detector(player_state, probability_up, True)
+            print(f"You FOUND THE TREASURE and it worth €{arrive_param['treasure_value']}")
+            input("(press Enter to continue)")
         else:
             # not detected
             play_detector(player_state, probability_up, False)
-    # fix update current airport ICAO
-    player_state['location'] = current_airport_info['ident']
-    welcome_message = (f"Hello, welcome to {airport_name} in {country_name} (ICAO: {player_state['location']})\n\n"
-                       f"Wanna try your luck? Just €{before_shop_param['dice_game_cost']}! "
-                       f"If not, I'll return you {fuel_back_percent}% ({fuel_back} kg) fuel back, as promised.\n"
-                       f"(reward +{dice_bonus_percent}% based on last flight distance)\n")
+    welcome_message = (f"Hello and welcome to {airport_name} in {country_name} (ICAO: {player_state['location']})"
+                       f"\n\nWanna unload the cargo by yourself? There's always REWARD and RISK!"
+                       f"\nOr you can hand them to me safely, just cost €{arrive_param['hand_over_cost']}! "
+                       f"NO RISK, but also NO REWARD."
+                       f"\n\n(Reward has been +{dice_bonus_percent}% if unload by yourself, "
+                       f"based on last flight distance)\n")
 
     # change welcome message when at home
     if current_airport_info['visit'] == 2:
@@ -407,7 +409,7 @@ def arrive(current_airport_info: dict, plane_param: dict, before_shop_param: dic
         clear_screen()
         print(format_player_state(player_state))
         print(welcome_message)
-        print("1. Sure\n2. Tell me about it\n3. Next time")
+        print("\n1. Unload by myself\n2. What are the rewards and risks?\n3. Hand over")
         select = input("> ")
         if select == "1":  # go dice game
             # fixing subtract 20euro when rolling the dice
@@ -417,49 +419,61 @@ def arrive(current_airport_info: dict, plane_param: dict, before_shop_param: dic
             result = random.randint(1, 6)
             play_rolling_dice(player_state, result)
             if result == 1:
-                dice_message = "Oh! You lost almost all your money!!! Better luck next time!"
-                player_state["money"] = 100
+                dice_message = ("Oh no! You broke a very expensive cargo that cost 90% of your deposit!!! "
+                                "Be careful next time!")
+                player_state["money"] = round(player_state["money"] * 0.1)
             elif result == 2:
-                dice_message = "Bad news, you lost €900!"
-                player_state["money"] -= 900
-                if player_state["money"] < 0:
-                    player_state["money"] = 0
+                dice_message = "The cargo is damaged, you just paid €1500!"
+                player_state["money"] -= 1500
+                # player now can have minus money.
+                # if player_state["money"] < 0:
+                #     player_state["money"] = 0
             elif result == 3:
-                dice_message = "Well, nothing happened to you."
+                dice_message = "Well, unloaded smoothly, but nothing happened to you."
             elif result == 4:
-                earned = 500 + round(500 * dice_bonus_percent / 100)
-                dice_message = f"Wow! You earned €{earned} (with {dice_bonus_percent}% bonus)"
+                earned = 1500 + round(1500 * dice_bonus_percent / 100)
+                dice_message = (f"Wow! You did a great job and earned extra €{earned} "
+                                f"(with {dice_bonus_percent}% distance bonus)")
                 player_state["money"] += earned
             elif result == 5:
-                earned = 500 + round(800 * dice_bonus_percent / 100)
-                dice_message = f"Great! You earned €{earned} (with {dice_bonus_percent}% bonus)"
+                earned = 1800 + round(1800 * dice_bonus_percent / 100)
+                dice_message = (f"Great! The owner of cargo is very happy and gave you a tips for €{earned} "
+                                f"(with {dice_bonus_percent}% distance bonus)")
+                player_state["money"] += earned
             else:
                 multiply = 2 + round(2 * dice_bonus_percent / 100, 2)
-                dice_message = f"Big one!!! MONEY * {multiply} (with {dice_bonus_percent}% bonus)"
+                dice_message = (f"You are so lucky!!! Turned out it was a very special cargo "
+                                f"and the owner was so happy.\n"
+                                f"Your deposit just multiplied by {multiply} (with {dice_bonus_percent}% bonus)")
                 player_state["money"] = round(player_state["money"] * multiply)
             print(dice_message)
             input("(press Enter to continue)")
             break
         elif select == "2":  # about game
-            print("It is a dice game, roll the dice.\nThe number you get, will decide your destiny.")
-            print(f"\t1: Lost almost all money. (I will leave you €100)\n"
-                  f"\t2: Deduct €900 \n"
-                  f"\t3: Nothing will happen\n"
-                  f"\t4: Add €{500 + round(500 * dice_bonus_percent / 100)} (with {dice_bonus_percent}% bonus)\n"
-                  f"\t5: Add €{800 + round(800 * dice_bonus_percent / 100)} (with {dice_bonus_percent}% bonus)\n"
-                  f"\t6: Money multiply {2 + round(2 * dice_bonus_percent / 100, 2)} (with {dice_bonus_percent}% bonus)")
-            print("Easy, right?")
+            print(f"\nHello {player_state['name']}, I want to play a game (a dice game)\n"
+                  "Unloading cargo by yourself, here are the possible risks and rewards:")
+            print(f"\n\t1: Something happened and you lost 90% of your deposit\n"
+                  f"\n\t2: Lost €1500 \n"
+                  f"\n\t3: Unloaded successfully, nothing happened\n"
+                  f"\n\t4: Earn extra €{1500 + round(1500 * dice_bonus_percent / 100)} (with {dice_bonus_percent}% bonus)\n"
+                  f"\n\t5: Earn extra €{1800 + round(1800 * dice_bonus_percent / 100)} (with {dice_bonus_percent}% bonus)\n"
+                  f"\n\t6: Deposit multiplies {2 + round(2 * dice_bonus_percent / 100, 2)} (with {dice_bonus_percent}% bonus)\n")
+            print("Now, make you choice... Play the dice game or not.")
             input("(press Enter to continue)")
-        elif select == "3":  # leave
-            print(f"Ok then, {fuel_back} kg fuel has been added to your plane!")
-            # fix update fuel when player get fuel back
-            player_state['fuel'] += fuel_back
-            break
+        elif select == "3":  # hand over
+            if player_state["money"] <= arrive_param["hand_over_cost"]:
+                print("Hmm, maybe you wanna do it yourself? Because you don't have enough M0nEy... yeah")
+                input("(press Enter to continue)")
+            else:
+                print(f"Great, you made a wise choice! hehehe...")
+                input("(press Enter to continue)")
+                player_state["money"] -= arrive_param["hand_over_cost"]
+                break
         else:
             print("Sorry that is not an option.")
             input("(press Enter to continue)")
-        welcome_message = (f"So, make you decision, €{before_shop_param['dice_game_cost']} to play "
-                           f"or I give you {fuel_back} kg fuel back")
+        welcome_message = (f"So, make you decision, unload yourself "
+                           f"or cost €{arrive_param['hand_over_cost']} to hand me over.")
 
 
 def shop(player_state: dict, current_airport_info: dict, shop_param: dict) -> int:
@@ -477,7 +491,7 @@ def shop(player_state: dict, current_airport_info: dict, shop_param: dict) -> in
         player_state["reminder"] = 1
 
     coffee_count = 0  # for fun
-    welcome_message = f"Ok {player_state['name']}, what else can I help?\n"
+    welcome_message = f"Hello {player_state['name']}, welcome to my shop! What can I help you?"
     # print menu, wait for selection, until player choose to leave.
     while True:
         clear_screen()
@@ -486,21 +500,21 @@ def shop(player_state: dict, current_airport_info: dict, shop_param: dict) -> in
 
         # at home
         if current_airport_info["visit"] == 2:
-            print("1. Buy fuel\n2. Continue my journey\n3. Have some coffee\n4. Expand my airport")
+            print("\n1. Buy fuel\n2. Continue my journey\n3. Have some coffee\n4. Open my own airport")
         else:
-            print("1. Buy fuel\n2. Continue my journey\n3. Have some coffee")
+            print("\n1. Buy fuel\n2. Continue my journey\n3. Have some coffee")
         select = input("> ")
         if select == "1":  # buy fuel
-            welcome_message = "So, preparing to go?"
-            print(f"Okay, the price is {shop_param['fuel_price']}/ton, how many do you want?")
+            welcome_message = "So, ready to go?"
+            print(f"Okay, the price is €{shop_param['fuel_price']}/kg, how much do you want? (enter money)")
             try:
-                amount = int(input("> "))
+                expense = int(input("> "))
             except:
                 print("Hmm, please tell me only numbers.")
                 input("(press Enter to continue)")
             else:
-                expense = amount * shop_param['fuel_price']
-                print(f"That is €{expense} for {amount} ton fuel, is that ok?")
+                amount = round(expense / shop_param['fuel_price'])
+                print(f"With €{expense} you can buy {amount} kg fuel, is that ok?")
                 print("(press Enter to continue, input c to cancel)")
                 confirm = input("> ")
                 if confirm == "":
@@ -521,7 +535,6 @@ def shop(player_state: dict, current_airport_info: dict, shop_param: dict) -> in
             input("(press Enter to continue)")
             break
         elif select == "3":  # buy coffee
-            welcome_message = "Great coffee, right? What do you need now?"
             if player_state["money"] < 3:
                 print("Interesting, you can't even afford a cup of coffee!")
                 input("(press Enter to continue)")
@@ -531,13 +544,14 @@ def shop(player_state: dict, current_airport_info: dict, shop_param: dict) -> in
                 if coffee_count >= 10:
                     return 4
                 else:
+                    welcome_message = "Great coffee, right? What do you need now?"
                     print("You spent €3, had a cup of coffee, feel refreshed, nothing else happened")
                     input("(press Enter to continue)")
         elif select == "4" and current_airport_info["visit"] == 2:
             if player_state["money"] < shop_param["win_money"]:
                 print("Well, you don't have enough money.")
-                print("Reminder:")
-                print(f"Your main goal is to earn €{shop_param['win_money']} to expand your airport.")
+                print("\nReminder:")
+                print(f"Your main goal is to earn €{shop_param['win_money']} to open your own airport.")
                 print(f"But now you only have €{player_state['money']}, come back later.")
                 input("(press Enter to continue)")
             else:
@@ -564,7 +578,7 @@ def departure(connection, current_airport_info, shop_param, plane_param, player_
     w2 = 20  # align width medium
     w3 = 55  # align width big
 
-    welcome_message = "Ready for working? Choose your next cargo destination from the list and get ready for takeoff!\n"
+    welcome_message = "\nReady for working? Choose your next cargo destination from the list and get ready for takeoff!"
     header = (f"{'Airport (Country)    ✔: Visited    *:Home':{a}{w3}} "
               f"{'ICAO':{a}{w1}} {'Distance (Fuel)':{a}{w2}} {'ETA':{a}{w1}} {'Reward':{a}{w1}} {'Emission':{a}}")
     split_header = len(header) * "-"
@@ -574,9 +588,9 @@ def departure(connection, current_airport_info, shop_param, plane_param, player_
     split_available = f"{'Available':.<{len(header)}}"
     airport_now, airport_avail_list, airport_out_list, flag_no_time = get_airports_in_range(connection, plane_param,
                                                                                             player_state)
-    airport_avail_detail_list = format_airport_list(airport_avail_list, plane_param)
-    airport_out_detail_list = format_airport_list(airport_out_list, plane_param)
-    airport_now_detail = format_airport_list([airport_now], plane_param, True)[0]
+    airport_avail_detail_list = format_airport_list(airport_avail_list)
+    airport_out_detail_list = format_airport_list(airport_out_list)
+    airport_now_detail = format_airport_list([airport_now], True)[0]
 
     while True:
         print(format_player_state(player_state))
@@ -607,15 +621,20 @@ def departure(connection, current_airport_info, shop_param, plane_param, player_
                 if not airport_info_list_temp:
                     return 3, {}
                 else:
+                    print("\n")
                     print("You don't have enough fuel, but still have some money,")
                     print("Why not going back to shop and buy some?")
 
         print("\nYour next destination, enter ICAO, or enter s to go back shop:")
-        select = input("> ")
+        select = input("> ").upper()
 
         # go back to shop when input s
-        if select == "s":
+        if select == "S":
             ending_type = shop(player_state, current_airport_info, shop_param)
+            # update available and out of range list after buying fuel again
+            _, airport_avail_list, airport_out_list, _ = get_airports_in_range(connection, plane_param, player_state)
+            airport_avail_detail_list = format_airport_list(airport_avail_list)
+            airport_out_detail_list = format_airport_list(airport_out_list)
             if ending_type == 0:
                 continue
             else:
@@ -666,37 +685,34 @@ def game(connection, resume=False, debug=False):
     # emission: g/km
     # reward: euro/km
 
-    plane_param = {"fuel_consumption": 2,
+    plane_param = {"fuel_consumption": 1.2,
                    "speed": 800,
-                   "emission": 100,
-                   "reward": 10}
+                   "emission": 0.1,
+                   "reward": 1.2}
 
-    before_shop_param = {"dice_game_cost": 20,
-                         "dice_bonus_percent": 1,
+    arrive_param = {"hand_over_cost": 1000,
+                    "dice_bonus_percent": 1,
 
-                         "fuel_base_percent": 5,
-                         "fuel_bonus_percent": 1,
+                    "treasure_value": 10000,
+                    "detector_base_per_10k": 50,
+                    "detector_bonus_per_10k": 5,
 
-                         "treasure_value": 8000,
-                         "detector_base_per_thousand": 5,
-                         "detector_bonus_per_thousand": 0.5,
-
-                         "dividend": 500}
+                    "dividend": 500}
     # every [dividend] km, add percentage to [fuel_back_percent]/[dice_bonus_percent]
     # for example: every 500km, increase 1 percentage to fuel back and dice bonus.
 
-    shop_param = {"fuel_price": 20,
-                  "win_money": 10000}
+    shop_param = {"fuel_price": 0.8,
+                  "win_money": 20000}
 
     score_param = {"money": 1,
                    "emission": 1,
                    "time": 0.01}
 
-    # days in game
-    time_limit_days = 20
+    time_limit_days = 20  # days in game
     init_money = 1000
-    init_fuel = 10000
-
+    init_fuel = 1000
+    init_probability = 5
+    num_of_airport = 30
     # ---------------------
     # GAME INIT (NEW GAME OR CONTINUE GAME)
     # ---------------------
@@ -709,10 +725,10 @@ def game(connection, resume=False, debug=False):
         player_name = input("> ")
         time_limit = time_limit_days * 24 * 3600
         #
-        current_airport_info = generate_random_airports(connection, 25)
+        current_airport_info = generate_random_airports(connection, num_of_airport)
         player_state = {"name": player_name, "money": init_money, "fuel": init_fuel, "emission": 0,
-                        "location": current_airport_info["ident"], "probability": 5, "time": time_limit, "treasure": 0,
-                        "reminder": 0, "score": 0, "finish": 0}
+                        "location": current_airport_info["ident"], "probability": init_probability, "time": time_limit,
+                        "treasure": 0, "reminder": 0, "score": 0, "finish": 0}
         init_player_state(connection, player_state)
     else:
         # resume, load from database
@@ -752,11 +768,12 @@ def game(connection, resume=False, debug=False):
             current_airport_info=current_airport_info,
             shop_param=shop_param)
 
-        # save game in between, and check is game over
-        save_player_state(connection, player_state)
+        # check is game over
         if end_type != 0:
             end_game(end_type)
             break
+        # save game in between
+        save_player_state(connection, player_state)
 
         # second step: departure to next airport.
         end_type, current_airport_info = departure(
@@ -766,17 +783,17 @@ def game(connection, resume=False, debug=False):
             plane_param=plane_param,
             player_state=player_state)
 
-        # save game in between, and check is game over
-        save_player_state(connection, player_state)
+        # check is game over
         if end_type != 0:
             end_game(end_type)
             break
+        # save game in between
+        save_player_state(connection, player_state)
 
         # third step: arrive new airport
         arrive(
             current_airport_info=current_airport_info,
-            plane_param=plane_param,
-            before_shop_param=before_shop_param,
+            arrive_param=arrive_param,
             player_state=player_state)
 
         # save game in between, (but no game over check here because game can't be over here)
@@ -811,17 +828,28 @@ def game(connection, resume=False, debug=False):
 # BEFORE GAME MENU
 # ---------------------
 def main():
-    # notify user to adjust or change to terminal
-    notify_experience()
-
     # init database connection
+    use_local_database = False
+
+    if use_local_database:
+        db_host = "127.0.0.1"
+        db_name = "root"
+        db_password = "metro"
+    else:
+        db_host = "aws.connect.psdb.cloud"
+        db_name = "pfztc12l59no0ovg1wtp"
+        db_password = "pscale_pw_aBT664FjilSnOjP5rBkSL7Upkm98B6Z7eRg8bRxwLcz"
+
     connection = mysql.connector.connect(
-        host="127.0.0.1",
+        host=db_host,
         port=3306,
         database="flight_game",
-        user="root",
-        password="metro",
+        user=db_name,
+        password=db_password,
         autocommit=True)
+
+    # notify user to adjust or change to terminal
+    notify_experience()
 
     # Give player option to read story or not
     clear_screen()
@@ -830,15 +858,21 @@ def main():
         if story == 'N':
             break
         elif story == 'Y' or story == '':  # make Y a default option
+            # print(get_story())
             for line in get_story():
                 print(line)
             break
         else:
             print("Invalid option! Please enter only 'y' or 'n'")
     print("\n")
-    print("-------------------------------------------------------------------------------")
+    print("-" * 80)
+    print("Objective:")
+    print("1. Deliver cargo to earn, buy fuel to fly, keep low emission (calculated for final score)")
+    print("2. Make choice when delivering, with risk and reward.")
+    print("3. Visit new airports to find special treasure! (with a treasure detector)")
+    print("-" * 80)
     print("All right! Now let's get starting your journey")
-    print("-------------------------------------------------------------------------------")
+    print("-" * 80)
 
     while True:
         print("1.New Game\n2.Continue\n3.High Score\n4.Exit")
@@ -852,7 +886,7 @@ def main():
         elif select == "4":
             break
         else:
-            print("Invalid option!")
+            print("Invalid option!\n")
 
 
 # note: end type 1: win. 2: time, 3: fuel and money, 4: coffee
