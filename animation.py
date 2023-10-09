@@ -126,7 +126,7 @@ def play_detector(player_state: dict, probability_up: int, found: bool):
         while frame <= 3:
             clear_screen()
             print(format_player_state(player_state_ani))
-            print(f"New airport, accuracy + {probability_up / 100}%, calibrating" + "." * frame)
+            print(f"New airport, detector accuracy + {probability_up / 100}%, calibrating" + "." * frame)
             frame += 1
             time.sleep(0.6)
 
@@ -191,7 +191,7 @@ def play_flying(dest_name, dest_country, emission, fuel_consumption, reward, tim
 
         pre = int(frame_count * ani_speed)
         frame_plane = " " * pre + plane_icon
-        frame_city = " " * ani_length + f"{dest_name} ({dest_country})"
+        frame_city = f"DST: {dest_name} ({dest_country})"
         traveled_distance += ani_speed
         frame_count += 1
         player_state_ani["fuel"] = round(player_state_ani["fuel"] - fuel_speed)
@@ -199,13 +199,13 @@ def play_flying(dest_name, dest_country, emission, fuel_consumption, reward, tim
         player_state_ani["emission"] = round(player_state_ani["emission"] + emission_speed)
         player_state_ani["money"] = round(player_state_ani["money"] + reward_speed)
         print(format_player_state(player_state_ani))
+        print(frame_city)
         print(frame_plane)
         print("\n")
         print(frame_cloud_1[cloud_move_1:])
         print(frame_cloud_2[cloud_move_2:])
         print(frame_cloud_3[cloud_move_3:])
         print("\n")
-        print(frame_city)
         time.sleep(interval)
 
 
@@ -294,9 +294,10 @@ def play_money_ending():
           '-.____.' 
     """
     count = len(money_frame)
+    clear_screen()
     print(money_frame)
-    time.sleep(0.5)
-    for i in range(10):
+    time.sleep(1.5)
+    for i in range(11):
         clear_screen()
         print(money_frame[int(i * count / 10):])
         time.sleep(0.1)
@@ -321,7 +322,8 @@ def play_win():
         for j in range(10 - i, 10):
             print(fireworks[j])
         time.sleep(0.2)
-    print("CONGRATULATIONS!!! You just expand your airport!")
+    print("CONGRATULATIONS!!! You just expanded your airport!")
+    print("Finally, your dream came true!")
     input("(press Enter to continue)")
     play_credit()
 
@@ -357,6 +359,7 @@ def play_credit():
                     "",
                     "Testing",
                     "Loc Dang",
+                    "Sheng Tai",
                     "",
                     "",
                     "",
@@ -370,7 +373,7 @@ def play_credit():
 
 
 def play_score(player_state: dict, fuel_price, score_dict, is_high_score: bool):
-    score = sum(score_dict.values())
+    score = score_dict["money"] + score_dict["time"] - score_dict["emission"]
 
     player_state_ani = copy.deepcopy(player_state)
     play_time = 0.8
