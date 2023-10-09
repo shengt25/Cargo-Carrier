@@ -168,9 +168,10 @@ def get_airports_in_range(connection, plane_param, player_state: dict) -> tuple[
             airport_info["emission"] = round(distance * plane_param["emission"])
             airport_info["reward"] = round(airport_info["distance"] * plane_param["reward"])
 
-            # if anywhere is in range of time, then there's time to fly somewhere, so, set flag_no_time to False
+            # if anywhere is in range of time, set flag_no_time to False
             if distance <= range_by_time:
                 flag_no_time = False
+                # then check fuel range
                 if distance <= range_by_fuel:
                     airports_in_range.append(airport_info)
                 else:
