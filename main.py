@@ -52,6 +52,7 @@ def second_to_dhm(seconds: int) -> tuple[int, int, int]:
 
 
 def notify_experience():
+    notify = False
     try:
         terminal_width = os.get_terminal_size()[0]
     except:
@@ -59,15 +60,15 @@ def notify_experience():
     try:
         is_idle = "idlelib" in sys.modules
     except:
-        print("e")
         is_idle = True
-    if terminal_width < 0:
+    if terminal_width < 0 or is_idle:
+        notify = True
         print("Please use terminal environment for a better experience, thank you!")
     if 0 < terminal_width < 120:
+        notify = True
         print("Please adjust your terminal width wider than 120 for a better experience, thank you!")
-    if is_idle:
-        print("Please use terminal environment for a better experience, thank you!")
-    input("(press Enter to continue)")
+    if notify:
+        input("(press Enter to continue)")
 
 
 # ---------------------
@@ -164,17 +165,18 @@ def get_airports_in_range(connection, plane_param, player_state: dict) -> tuple[
             airport_info["distance"] = distance
             airport_info["time"] = round(distance / plane_param["speed"] * 3600)  # time is in second
             airport_info["fuel_consumption"] = round(distance * plane_param["fuel_consumption"])
-            airport_info["emission"] = round(distance * plane_param["emission"] / 1000)
+            airport_info["emission"] = round(distance * plane_param["emission"])
             airport_info["reward"] = round(airport_info["distance"] * plane_param["reward"])
 
-            if distance <= range_by_fuel and distance <= range_by_time:
-                # if anywhere is in range of time, then there's time to fly somewhere, so, set flag_no_time to False
-                if distance <= range_by_time and flag_no_time is True:
-                    flag_no_time = False
-                airports_in_range.append(airport_info)
-            else:
-                airports_out_of_range.append(airport_info)
+            # if anywhere is in range of time, then there's time to fly somewhere, so, set flag_no_time to False
+            if distance <= range_by_time:
+                flag_no_time = False
+                if distance <= range_by_fuel:
+                    airports_in_range.append(airport_info)
+                else:
+                    airports_out_of_range.append(airport_info)
     airports_in_range.sort(key=lambda x: x["distance"])
+    airports_out_of_range.sort(key=lambda x: x["distance"])
     return airport_now, airports_in_range, airports_out_of_range, flag_no_time
 
 
@@ -184,7 +186,7 @@ def mark_visit_airport(connection, selected_airport):
         database_execute(connection, sql_query, (selected_airport["ident"],))
 
 
-def format_airport_list(airport_list: list, plane_param, airport_now=False) -> list:
+def format_airport_list(airport_list: list, airport_now=False) -> list:
     a = "<"  # align to left
     w1 = 8  # align width small
     w2 = 20  # align width medium
@@ -331,6 +333,10 @@ def calculate_score(player_state, score_param):
     return score_dict, score
 
 
+# ---------------------
+# MAIN GAME MODULE
+# ---------------------
+
 def end_game(end_type):
     # end type 1: win. 2: time, 3: fuel and money, 4: coffee
     if end_type == 1:
@@ -345,11 +351,6 @@ def end_game(end_type):
         raise Exception("Ending not defined")
 
 
-# ---------------------
-# MAIN GAME MODULE
-# ---------------------
-
-
 def arrive(current_airport_info: dict, plane_param: dict, before_shop_param: dict, player_state: dict):
     """
     Player detects treasure and play dice game here.
@@ -359,6 +360,9 @@ def arrive(current_airport_info: dict, plane_param: dict, before_shop_param: dic
     :param player_state:
     :return:
     """
+    # fix update current airport ICAO
+    player_state['location'] = current_airport_info['ident']
+
     # check is this unvisited airport
     airport_name = current_airport_info['name']
     country_name = current_airport_info['country_name']
@@ -366,8 +370,9 @@ def arrive(current_airport_info: dict, plane_param: dict, before_shop_param: dic
 
     # set up bonus
     fuel_back_percent = round(
-        distance_last_fly / before_shop_param["dividend"] * before_shop_param["fuel_bonus_percent"] + before_shop_param[
-            "fuel_base_percent"], 2)
+        distance_last_fly / before_shop_param["dividend"] * before_shop_param["fuel_back_bonus_percent"] +
+        before_shop_param[
+            "fuel_back_base_percent"], 2)
     fuel_back = round(fuel_back_percent * distance_last_fly * plane_param["fuel_consumption"] / 100)
 
     dice_bonus_percent = round(distance_last_fly / before_shop_param["dividend"], 2)
@@ -378,22 +383,23 @@ def arrive(current_airport_info: dict, plane_param: dict, before_shop_param: dic
         if current_airport_info['visit'] == 0:
             # set up probability, round to int, (use num ‰)
             probability_bonus = distance_last_fly / before_shop_param["dividend"] * before_shop_param[
-                "detector_bonus_per_thousand"]
-            probability_up = round(before_shop_param["detector_base_per_thousand"] + probability_bonus)
+                "detector_bonus_per_10k"]
+            probability_up = round(before_shop_param["detector_base_per_10k"] + probability_bonus)
             player_state["probability"] += probability_up
 
-        detection = random.randint(1, 1000)
+        # the probability is per 10 thousand (such as 52/10000, which equivalent to 0.52%)
+        detection = random.randint(1, 10000)
         if detection <= player_state["probability"]:
             # detected
             player_state["money"] += before_shop_param["treasure_value"]
             player_state["treasure"] = 1
             player_state["probability"] = -1
             play_detector(player_state, probability_up, True)
+            print(f"You FOUND THE TREASURE and it worth €{before_shop_param['treasure_value']}")
+            input("(press Enter to continue)")
         else:
             # not detected
             play_detector(player_state, probability_up, False)
-    # fix update current airport ICAO
-    player_state['location'] = current_airport_info['ident']
     welcome_message = (f"Hello, welcome to {airport_name} in {country_name} (ICAO: {player_state['location']})\n\n"
                        f"Wanna try your luck? Just €{before_shop_param['dice_game_cost']}! "
                        f"If not, I'll return you {fuel_back_percent}% ({fuel_back} kg) fuel back, as promised.\n"
@@ -442,12 +448,12 @@ def arrive(current_airport_info: dict, plane_param: dict, before_shop_param: dic
             break
         elif select == "2":  # about game
             print("It is a dice game, roll the dice.\nThe number you get, will decide your destiny.")
-            print(f"\t1: Lost almost all money. (I will leave you €100)\n"
-                  f"\t2: Deduct €900 \n"
-                  f"\t3: Nothing will happen\n"
-                  f"\t4: Add €{500 + round(500 * dice_bonus_percent / 100)} (with {dice_bonus_percent}% bonus)\n"
-                  f"\t5: Add €{800 + round(800 * dice_bonus_percent / 100)} (with {dice_bonus_percent}% bonus)\n"
-                  f"\t6: Money multiply {2 + round(2 * dice_bonus_percent / 100, 2)} (with {dice_bonus_percent}% bonus)")
+            print(f"\n\t1: Lost almost all money. (I will leave you €100)\n"
+                  f"\n\t2: Deduct €900 \n"
+                  f"\n\t3: Nothing will happen\n"
+                  f"\n\t4: Add €{500 + round(500 * dice_bonus_percent / 100)} (with {dice_bonus_percent}% bonus)\n"
+                  f"\n\t5: Add €{800 + round(800 * dice_bonus_percent / 100)} (with {dice_bonus_percent}% bonus)\n"
+                  f"\n\t6: Money multiply {2 + round(2 * dice_bonus_percent / 100, 2)} (with {dice_bonus_percent}% bonus)\n")
             print("Easy, right?")
             input("(press Enter to continue)")
         elif select == "3":  # leave
@@ -477,7 +483,7 @@ def shop(player_state: dict, current_airport_info: dict, shop_param: dict) -> in
         player_state["reminder"] = 1
 
     coffee_count = 0  # for fun
-    welcome_message = f"Ok {player_state['name']}, what else can I help?\n"
+    welcome_message = f"Hello {player_state['name']}, welcome to my shop! What can I help you?\n"
     # print menu, wait for selection, until player choose to leave.
     while True:
         clear_screen()
@@ -492,15 +498,15 @@ def shop(player_state: dict, current_airport_info: dict, shop_param: dict) -> in
         select = input("> ")
         if select == "1":  # buy fuel
             welcome_message = "So, preparing to go?"
-            print(f"Okay, the price is {shop_param['fuel_price']}/ton, how many do you want?")
+            print(f"Okay, the price is €{shop_param['fuel_price']}/kg, how much do you want? (enter money)")
             try:
-                amount = int(input("> "))
+                expense = int(input("> "))
             except:
                 print("Hmm, please tell me only numbers.")
                 input("(press Enter to continue)")
             else:
-                expense = amount * shop_param['fuel_price']
-                print(f"That is €{expense} for {amount} ton fuel, is that ok?")
+                amount = round(expense / shop_param['fuel_price'])
+                print(f"With €{expense} you can buy {amount} kg fuel, is that ok?")
                 print("(press Enter to continue, input c to cancel)")
                 confirm = input("> ")
                 if confirm == "":
@@ -564,7 +570,7 @@ def departure(connection, current_airport_info, shop_param, plane_param, player_
     w2 = 20  # align width medium
     w3 = 55  # align width big
 
-    welcome_message = "Ready for working? Choose your next cargo destination from the list and get ready for takeoff!\n"
+    welcome_message = "\nReady for working? Choose your next cargo destination from the list and get ready for takeoff!"
     header = (f"{'Airport (Country)    ✔: Visited    *:Home':{a}{w3}} "
               f"{'ICAO':{a}{w1}} {'Distance (Fuel)':{a}{w2}} {'ETA':{a}{w1}} {'Reward':{a}{w1}} {'Emission':{a}}")
     split_header = len(header) * "-"
@@ -574,9 +580,9 @@ def departure(connection, current_airport_info, shop_param, plane_param, player_
     split_available = f"{'Available':.<{len(header)}}"
     airport_now, airport_avail_list, airport_out_list, flag_no_time = get_airports_in_range(connection, plane_param,
                                                                                             player_state)
-    airport_avail_detail_list = format_airport_list(airport_avail_list, plane_param)
-    airport_out_detail_list = format_airport_list(airport_out_list, plane_param)
-    airport_now_detail = format_airport_list([airport_now], plane_param, True)[0]
+    airport_avail_detail_list = format_airport_list(airport_avail_list)
+    airport_out_detail_list = format_airport_list(airport_out_list)
+    airport_now_detail = format_airport_list([airport_now], True)[0]
 
     while True:
         print(format_player_state(player_state))
@@ -607,15 +613,20 @@ def departure(connection, current_airport_info, shop_param, plane_param, player_
                 if not airport_info_list_temp:
                     return 3, {}
                 else:
+                    print("\n")
                     print("You don't have enough fuel, but still have some money,")
                     print("Why not going back to shop and buy some?")
 
         print("\nYour next destination, enter ICAO, or enter s to go back shop:")
-        select = input("> ")
+        select = input("> ").upper()
 
         # go back to shop when input s
-        if select == "s":
+        if select == "S":
             ending_type = shop(player_state, current_airport_info, shop_param)
+            # update available and out of range list after buying fuel again
+            _, airport_avail_list, airport_out_list, _ = get_airports_in_range(connection, plane_param, player_state)
+            airport_avail_detail_list = format_airport_list(airport_avail_list)
+            airport_out_detail_list = format_airport_list(airport_out_list)
             if ending_type == 0:
                 continue
             else:
@@ -666,27 +677,27 @@ def game(connection, resume=False, debug=False):
     # emission: g/km
     # reward: euro/km
 
-    plane_param = {"fuel_consumption": 2,
+    plane_param = {"fuel_consumption": 1.2,
                    "speed": 800,
-                   "emission": 100,
-                   "reward": 10}
+                   "emission": 0.1,
+                   "reward": 1.5}
 
-    before_shop_param = {"dice_game_cost": 20,
+    before_shop_param = {"dice_game_cost": 50,
                          "dice_bonus_percent": 1,
 
-                         "fuel_base_percent": 5,
-                         "fuel_bonus_percent": 1,
+                         "fuel_back_base_percent": 5,
+                         "fuel_back_bonus_percent": 1,
 
-                         "treasure_value": 8000,
-                         "detector_base_per_thousand": 5,
-                         "detector_bonus_per_thousand": 0.5,
+                         "treasure_value": 10000,
+                         "detector_base_per_10k": 50,
+                         "detector_bonus_per_10k": 5,
 
                          "dividend": 500}
     # every [dividend] km, add percentage to [fuel_back_percent]/[dice_bonus_percent]
     # for example: every 500km, increase 1 percentage to fuel back and dice bonus.
 
-    shop_param = {"fuel_price": 20,
-                  "win_money": 10000}
+    shop_param = {"fuel_price": 0.8,
+                  "win_money": 20000}
 
     score_param = {"money": 1,
                    "emission": 1,
@@ -695,8 +706,8 @@ def game(connection, resume=False, debug=False):
     # days in game
     time_limit_days = 20
     init_money = 1000
-    init_fuel = 10000
-
+    init_fuel = 1000
+    init_probability = 5
     # ---------------------
     # GAME INIT (NEW GAME OR CONTINUE GAME)
     # ---------------------
@@ -711,8 +722,8 @@ def game(connection, resume=False, debug=False):
         #
         current_airport_info = generate_random_airports(connection, 25)
         player_state = {"name": player_name, "money": init_money, "fuel": init_fuel, "emission": 0,
-                        "location": current_airport_info["ident"], "probability": 5, "time": time_limit, "treasure": 0,
-                        "reminder": 0, "score": 0, "finish": 0}
+                        "location": current_airport_info["ident"], "probability": init_probability, "time": time_limit,
+                        "treasure": 0, "reminder": 0, "score": 0, "finish": 0}
         init_player_state(connection, player_state)
     else:
         # resume, load from database
@@ -752,11 +763,12 @@ def game(connection, resume=False, debug=False):
             current_airport_info=current_airport_info,
             shop_param=shop_param)
 
-        # save game in between, and check is game over
-        save_player_state(connection, player_state)
+        # check is game over
         if end_type != 0:
             end_game(end_type)
             break
+        # save game in between
+        save_player_state(connection, player_state)
 
         # second step: departure to next airport.
         end_type, current_airport_info = departure(
@@ -766,11 +778,12 @@ def game(connection, resume=False, debug=False):
             plane_param=plane_param,
             player_state=player_state)
 
-        # save game in between, and check is game over
-        save_player_state(connection, player_state)
+        # check is game over
         if end_type != 0:
             end_game(end_type)
             break
+        # save game in between
+        save_player_state(connection, player_state)
 
         # third step: arrive new airport
         arrive(
@@ -811,17 +824,28 @@ def game(connection, resume=False, debug=False):
 # BEFORE GAME MENU
 # ---------------------
 def main():
-    # notify user to adjust or change to terminal
-    notify_experience()
-
     # init database connection
+    use_local_database = True
+
+    if use_local_database:
+        db_host = "127.0.0.1"
+        db_name = "root"
+        db_password = "metro"
+    else:
+        db_host = "aws.connect.psdb.cloud"
+        db_name = "pfztc12l59no0ovg1wtp"
+        db_password = "pscale_pw_aBT664FjilSnOjP5rBkSL7Upkm98B6Z7eRg8bRxwLcz"
+
     connection = mysql.connector.connect(
-        host="127.0.0.1",
+        host=db_host,
         port=3306,
         database="flight_game",
-        user="root",
-        password="metro",
+        user=db_name,
+        password=db_password,
         autocommit=True)
+
+    # notify user to adjust or change to terminal
+    notify_experience()
 
     # Give player option to read story or not
     clear_screen()

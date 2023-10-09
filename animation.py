@@ -33,7 +33,8 @@ def format_player_state(player_state: dict) -> str:
     if player_state["treasure"] == 1:
         probability = "N/A"
     else:
-        probability = str(player_state['probability'] / 10) + "%"
+        # divided by 100, to convert num/10000 to num/100
+        probability = str(player_state['probability'] / 100) + "%"
     dd, hh, mm = second_to_dhm(player_state['time'])
     time_left = f"{dd}d {hh}h {mm}m"
     info1 = f"{'Time Left':{a}{w1}} | {'Money':{a}{w1}} | {'Fuel':{a}{w1}} | {'CO2 Emission':{a}{w2}} | {'Location':{a}{w2}} | {'Detector':{a}{w1}}"
@@ -125,7 +126,7 @@ def play_detector(player_state: dict, probability_up: int, found: bool):
         while frame <= 3:
             clear_screen()
             print(format_player_state(player_state_ani))
-            print(f"New airport, accuracy + {probability_up / 10}%, calibrating" + "." * frame)
+            print(f"New airport, accuracy + {probability_up / 100}%, calibrating" + "." * frame)
             frame += 1
             time.sleep(0.6)
 
@@ -143,7 +144,7 @@ def play_detector(player_state: dict, probability_up: int, found: bool):
         print(format_player_state(player_state_ani))
         print("Detecting... " + "YOU FOUNT IT!!!")
         print(detector_frame.replace("*", "* !!!"))
-        input("(press Enter to continue)")
+        time.sleep(1)
     else:
         clear_screen()
         print(format_player_state(player_state_ani))
