@@ -366,8 +366,8 @@ def play_credit():
                     "",
                     "Thank you for playing!"
                     ]
-    for credits in credits_list:
-        print(f"{credits:^50}")
+    for credits_line in credits_list:
+        print(f"{credits_line:^50}")
         time.sleep(0.4)
     input("(press Enter to continue)")
 
