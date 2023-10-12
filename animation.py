@@ -1,46 +1,7 @@
 import time
-import os
 import random
 import copy
-
-
-def clear_screen():
-    os.system("cls" if os.name == "nt" else "clear")
-
-
-def second_to_dhm(seconds: int) -> tuple[int, int, int]:
-    """
-    :param seconds: Time limit in seconds
-    :return: Time limit in hh, mm, ss
-    """
-    # note: int won't round, eg: int(0.9) = 0
-    day = int(seconds / 3600 / 24)
-    hour = int(seconds / 3600 - day * 24)
-    minute = int(seconds / 60 - hour * 60 - day * 24 * 60)
-    return day, hour, minute
-
-
-def format_player_state(player_state: dict) -> str:
-    """Returns the player info in formatted string (ready for print). Can be used as header in other info print."""
-    a = "^"  # align to center
-    w1 = 12  # align width small
-    w2 = 15  # align width medium
-    w3 = 20  # align width big
-    money = player_state['money']
-    fuel = player_state['fuel']
-    emission = player_state['emission']
-    location = player_state['location']
-    if player_state["treasure"] == 1:
-        probability = "N/A"
-    else:
-        # divided by 100, to convert num/10000 to num/100
-        probability = str(player_state['probability'] / 100) + "%"
-    dd, hh, mm = second_to_dhm(player_state['time'])
-    time_left = f"{dd}d {hh}h {mm}m"
-    info1 = f"{'Time Left':{a}{w1}} | {'Money':{a}{w1}} | {'Fuel':{a}{w1}} | {'CO2 Emission':{a}{w2}} | {'Location':{a}{w2}} | {'Treasure Detector':{a}{w3}}"
-    info2 = f"{time_left:{a}{w1}} | {money:{a}{w1}} | {fuel:{a}{w1}} | {emission:{a}{w2}} | {location:{a}{w2}} | {probability:{a}{w3}}"
-    split = "-" * len(info1)
-    return "\n".join([split, info1, info2, split])
+from display import clear_screen, format_player_state
 
 
 def make_ascii_dice(num):
@@ -288,20 +249,7 @@ def play_time_ending():
     input("(press Enter to continue)")
 
 
-def play_money_ending():
-    money_frame = r"""
-             _____
-          .-'     `-. 
-        .'  .-''''-.-'
-       /  .'
-  .---' '--------.
-   ''':  :'''''''
-.-----'  '-----.
- '''''\  \''''''
-       \  `.
-        '.  `-----.
-          '-.____.' 
-    """
+def play_money_fuel_ending():
     money_frame = r"""
 _____________________________________________
  ,--.   ,--.
