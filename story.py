@@ -4,6 +4,17 @@ import textwrap
 def get_story():
     word_list = []
     story_list = [
+        "In a world of European cargo aviation, you command your own plane. With 30 European airports at your disposal,"
+        "you are tasked with delivering cargo from one airport to another. Your mission is clear: efficiently transport goods,"
+        "manage your finances, and reach key objective— accumulate 20 000 EURO. Time is your greatest constraint; you have just 5 game days to achieve these goals.",
+        "You can get a great tip by company for a good job, but you also risk becoming a victim of competitors who will damage your cargo,"
+        "the fine is almost all your money. If you don’t want to take the risk to unload, just pay 200 EURO to hand over to professional unloader.",
+        "Remember - airlines really value flying to different airports, this can work to your advantage ;-)",
+        "As you take off on your maiden flight, your journey begins. Your choices and strategy will determine your success or failure."
+        "The European skies are yours to navigate, but the path to victory demands cold calculation and skillful decision-making."
+        ]
+
+    story_list_long = [
         "In a world where adventure awaited just beyond the horizon, you found yourself at the helm of your very own cargo plane. "
         "The skies of Europe stretched out before you, a canvas of endless possibilities. With a sense of excitement, "
         "you set out on a journey that would challenge your skills and test your resolve. "
@@ -18,7 +29,7 @@ def get_story():
         "but also you could have been a victim of losing all your money. "
         "Remember – companies can reward generously if you fly to different airports and don’t repeat yourself. "
         "Perhaps the greatest challenge of all was the temptation to cancel a delivery when the going got tough. "
-        "But handing over came at a cost a hefty 1000 EURO that could set you back considerably. ",
+        "But handing over came at a cost a hefty 300 EURO that could set you back considerably. ",
         "You knew that your goal was amass a fortune of 20 000 EURO and open your tiny but lovely personal airport – "
         "you have dreamed about this all your life. Time was not your ally in this quest; "
         "you had only about a one month (equivalent to 10 minutes in the real world) to achieve these ambitious objectives.",

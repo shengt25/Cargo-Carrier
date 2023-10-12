@@ -37,8 +37,8 @@ def format_player_state(player_state: dict) -> str:
         probability = str(player_state['probability'] / 100) + "%"
     dd, hh, mm = second_to_dhm(player_state['time'])
     time_left = f"{dd}d {hh}h {mm}m"
-    info1 = f"{'Time Left':{a}{w1}} | {'Money':{a}{w1}} | {'Fuel':{a}{w1}} | {'CO2 Emission':{a}{w2}} | {'Location':{a}{w2}} | {'Detector':{a}{w1}}"
-    info2 = f"{time_left:{a}{w1}} | {money:{a}{w1}} | {fuel:{a}{w1}} | {emission:{a}{w2}} | {location:{a}{w2}} | {probability:{a}{w1}}"
+    info1 = f"{'Time Left':{a}{w1}} | {'Money':{a}{w1}} | {'Fuel':{a}{w1}} | {'CO2 Emission':{a}{w2}} | {'Location':{a}{w2}} | {'Treasure Detector':{a}{w3}}"
+    info2 = f"{time_left:{a}{w1}} | {money:{a}{w1}} | {fuel:{a}{w1}} | {emission:{a}{w2}} | {location:{a}{w2}} | {probability:{a}{w3}}"
     split = "-" * len(info1)
     return "\n".join([split, info1, info2, split])
 
@@ -113,11 +113,11 @@ def play_rolling_dice(player_state, result: int):
 
 def play_detector(player_state: dict, probability_up: int, found: bool):
     detector_frame = """
-                *
-                |_
-                (O)
-                |#|
-                '-'    
+            *
+            |_
+            (O)
+            |#|
+            '-'    
     """
     frame = 0
     player_state_ani = copy.deepcopy(player_state)
@@ -135,6 +135,7 @@ def play_detector(player_state: dict, probability_up: int, found: bool):
     while frame <= 3:
         clear_screen()
         print(format_player_state(player_state_ani))
+        print(f"New airport, detector accuracy + {probability_up / 100}%, calibrating..." if probability_up > 0 else "")
         print("Detecting" + "." * frame)
         print(detector_frame.replace("*", "*" + " )" * frame))
         frame += 1
@@ -142,21 +143,25 @@ def play_detector(player_state: dict, probability_up: int, found: bool):
     if found:
         clear_screen()
         print(format_player_state(player_state_ani))
-        print("Detecting... " + "YOU FOUNT IT!!!")
+        print(f"New airport, detector accuracy + {probability_up / 100}%, calibrating..." if probability_up > 0 else "")
+        print("Detecting...")
         print(detector_frame.replace("*", "* !!!"))
+        print("YOU FOUND IT!!!")
         time.sleep(1)
     else:
         clear_screen()
         print(format_player_state(player_state_ani))
-        print("Detecting..." + " no luck...")
+        print(f"New airport, detector accuracy + {probability_up / 100}%, calibrating..." if probability_up > 0 else "")
+        print("Detecting...")
         print(detector_frame.replace("*", ""))
+        print("no luck...")
         time.sleep(1)
 
 
 def play_flying(dest_name, dest_country, emission, fuel_consumption, reward, time_used, player_state):
     # time of flying animation is fixed time.
     ani_length = 60
-    flying_time = 2  # time of playing animation (in second)
+    flying_time = 3  # time of playing animation (in second)
 
     frame_rate = 30
     interval = 1 / frame_rate
@@ -232,6 +237,8 @@ def play_coffee_ending():
         print(coffee_frame)
         print(message)
         time.sleep(0.8)
+    print("GAME OVER!")
+    print("\n")
     input("(press Enter to continue)")
 
 
@@ -241,7 +248,7 @@ def play_time_ending():
       .' .  0 . '.\
      / .        .  \
     ; .          . |;
-    |45    () ___15||
+    |45 ___()    15||
     ; .          . |;
      \\ .        . /
       \'___'30'___'
@@ -249,8 +256,8 @@ def play_time_ending():
     clock_frame_2 = r"""
         _..--.._ 
       .' .  0 . '.\
-     / .      / .  \
-    ; .      /   . |;
+     / . \      .  \
+    ; .   \      . |;
     |45    ()    15||
     ; .          . |;
      \\ .        . /
@@ -276,6 +283,8 @@ def play_time_ending():
     print(clock_frame_3)
     time.sleep(1)
     print("Time runs out... And you didn't earn enough money")
+    print("GAME OVER!")
+    print("\n")
     input("(press Enter to continue)")
 
 
@@ -293,15 +302,25 @@ def play_money_ending():
         '.  `-----.
           '-.____.' 
     """
-    count = len(money_frame)
-    clear_screen()
-    print(money_frame)
-    time.sleep(1.5)
-    for i in range(11):
+    money_frame = r"""
+_____________________________________________
+ ,--.   ,--.
+| oo | |  oo|
+| ~~ | |  ~~|o*
+|/\/\| |/\/\|
+______________________________________________
+
+    """
+    count = 0
+    for i in range(7):
         clear_screen()
-        print(money_frame[int(i * count / 10):])
-        time.sleep(0.1)
+        print(money_frame.replace("*", "    o" * count))
+        time.sleep(0.3)
+        count += 1
+    time.sleep(1)
     print("You don't have any money or fuel to go anywhere.")
+    print("GAME OVER!")
+    print("\n")
     input("(press Enter to continue)")
 
 
@@ -324,6 +343,7 @@ def play_win():
         time.sleep(0.2)
     print("CONGRATULATIONS!!! You just opened your own airport! Tiny, but lovely!")
     print("Finally, your dream came true!")
+    print("\n")
     input("(press Enter to continue)")
     play_credit()
 
@@ -366,9 +386,9 @@ def play_credit():
                     "",
                     "Thank you for playing!"
                     ]
-    for credits in credits_list:
-        print(f"{credits:^50}")
-        time.sleep(0.4)
+    for credits_line in credits_list:
+        print(f"{credits_line:^50}")
+        time.sleep(0.2)
     input("(press Enter to continue)")
 
 
@@ -452,10 +472,6 @@ def play_score(player_state: dict, fuel_price, score_dict, is_high_score: bool):
     input("(press Enter to continue)")
 
 
-def play_intro():
-    pass
-
-
 # test
 def test():
     player_state_ani = {"name": "test", "money": 10, "fuel": 100, "emission": 100, "location": "LKPR",
@@ -479,9 +495,9 @@ def test():
     # play_coffee_ending()
     # play_time_ending()
     # play_money_ending()
-    # play_win()
+    play_win()
     # play_credit()
-    play_score(player_state_ani, 20, score_dict, True)
+    # play_score(player_state_ani, 20, score_dict, True)
 
 
 if __name__ == "__main__":
