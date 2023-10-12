@@ -62,7 +62,7 @@ def game(connection, resume=False, debug=False):
         # input player name
         while True:
             print("\nHello, what's your name?")
-            player_name = input("> ")
+            player_name = input("> ").strip()
             if player_name.isspace() or player_name == "":
                 print("Enter your name please.")
             else:
@@ -84,7 +84,7 @@ def game(connection, resume=False, debug=False):
         screen_name = sql_fetch[0]["screen_name"]
         if is_finish == 0:
             print(f"You have a game save whose name is {screen_name}, do you want to continue? (Y/n)")
-            select = input("> ")
+            select = input("> ").strip()
             if select == "y" or select == "Y" or select == "":
                 print("Game loaded, good luck!")
                 input("(press Enter to continue)")
@@ -210,7 +210,7 @@ def main():
     # Give player option to read story or not
     clear_screen()
     while True:
-        story = input("Do you want to read background story of this game? (Y/n): ").upper()
+        story = input("Do you want to read background story of this game? (Y/n): ").strip().upper()
         if story == 'N':
             break
         elif story == 'Y' or story == '':  # make Y a default option
@@ -234,7 +234,7 @@ def main():
 
     while True:
         print("1.New Game\n2.Continue\n3.High Score\n4.Exit")
-        select = input("> ")
+        select = input("> ").strip()
         if select == "1":
             game(connection)
         elif select == "2":

@@ -47,22 +47,21 @@ def print_high_score(connection):
 
 
 def print_experience_notification():
-    notify = False
+    notify_env = False
+    notify_width = False
+
     try:
         terminal_width = os.get_terminal_size()[0]
+        if terminal_width < 120:
+            notify_width = True
     except:
-        terminal_width = -1
-    try:
-        is_idle = "idlelib" in sys.modules
-    except:
-        is_idle = True
-    if terminal_width < 0 or is_idle:
-        notify = True
-        print("Please use terminal environment for a better experience, thank you!")
-    if 0 < terminal_width < 120:
-        notify = True
-        print("Please adjust your terminal width wider than 120 for a better experience, thank you!")
-    if notify:
+        notify_env = True
+
+    if notify_env or notify_width:
+        if notify_env:
+            print("For a better experience, please use terminal/cmd(command line prompt) to run this game, thank you!")
+        if notify_width:
+            print("For a better experience, please adjust your window width wider than 120, thank you!")
         input("(press Enter to continue)")
 
 

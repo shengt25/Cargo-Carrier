@@ -2,7 +2,7 @@ import random
 import copy
 from display import print_goal_reminder, format_player_state, format_airport_list, clear_screen
 from airport import get_airports_in_range, mark_visit_airport
-from animation import play_win, play_time_ending, play_money_ending, play_coffee_ending
+from animation import play_win, play_time_ending, play_money_fuel_ending, play_coffee_ending
 from animation import play_rolling_dice, play_flying, play_detector
 
 
@@ -17,7 +17,7 @@ def end_game(end_type):
     elif end_type == 2:
         play_time_ending()
     elif end_type == 3:
-        play_money_ending()
+        play_money_fuel_ending()
     elif end_type == 4:
         play_coffee_ending()
     else:
@@ -89,7 +89,7 @@ def arrival(current_airport_info: dict, arrival_param: dict, player_state: dict,
         print(format_player_state(player_state))
         print(welcome_message)
         print("\n1. Unload by myself (dice game)\n2. Hire someone (pay €600)\n3. What dice game?")
-        select = input("> ")
+        select = input("> ").strip()
         if select == "1":  # go dice game
             print("Great! Tell me when you're ready.")
             input("(press Enter to continue)")
@@ -184,12 +184,12 @@ def shop(player_state: dict, current_airport_info: dict, shop_param: dict) -> in
             print("\n1. Buy fuel\n2. Take off\n3. Have some coffee\n4. Open my own airport")
         else:
             print("\n1. Buy fuel\n2. Take off\n3. Have some coffee")
-        select = input("> ")
+        select = input("> ").strip()
         if select == "1":  # buy fuel
             welcome_message = "So, ready to go?"
             print(f"Okay, the price is €{shop_param['fuel_price']}/kg, how much do you want? (enter money)")
             try:
-                expense = int(input("> "))
+                expense = int(input("> ").strip())
             except:
                 print("Hmm, please tell me only numbers.")
                 input("(press Enter to continue)")
@@ -197,7 +197,7 @@ def shop(player_state: dict, current_airport_info: dict, shop_param: dict) -> in
                 amount = round(expense / shop_param['fuel_price'])
                 print(f"With €{expense} you can buy {amount} kg fuel, is that ok?")
                 print("(press Enter to continue, input c to cancel)")
-                confirm = input("> ")
+                confirm = input("> ").strip()
                 if confirm == "":
                     if player_state["money"] < expense:
                         print("Are you sure? Seems you don't have enough money.")
@@ -306,7 +306,7 @@ def departure(connection, current_airport_info, shop_param, plane_param, player_
                     print("Why not going back to shop and buy some?")
 
         print("\nYour next destination, enter ICAO, or enter s to go back shop:")
-        select = input("> ").upper()
+        select = input("> ").strip().upper()
 
         # go back to shop when input s
         if select == "S":

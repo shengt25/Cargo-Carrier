@@ -249,20 +249,7 @@ def play_time_ending():
     input("(press Enter to continue)")
 
 
-def play_money_ending():
-    money_frame = r"""
-             _____
-          .-'     `-. 
-        .'  .-''''-.-'
-       /  .'
-  .---' '--------.
-   ''':  :'''''''
-.-----'  '-----.
- '''''\  \''''''
-       \  `.
-        '.  `-----.
-          '-.____.' 
-    """
+def play_money_fuel_ending():
     money_frame = r"""
 _____________________________________________
  ,--.   ,--.
