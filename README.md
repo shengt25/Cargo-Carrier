@@ -18,7 +18,7 @@ The European skies are yours to navigate, but the path to victory demands cold c
 # How to play
 ## Installation
 1. **Download the game**  
-    `git clone https://github.com/shengt25/flygame.git`
+    `git clone https://github.com/shengt25/cargo_carrier.git`
 2. **Enter the game directory**  
     `cd flygame`
 3. **Run the game**  
