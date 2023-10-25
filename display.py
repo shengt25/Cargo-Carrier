@@ -1,5 +1,4 @@
 import os
-import sys
 from utils import database_execute
 from utils import second_to_dhm, second_to_hm
 
