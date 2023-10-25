@@ -64,7 +64,7 @@ def get_airports_distance(connection, first_airport_icao: str, second_airport_ic
     return round(airports_distance)
 
 
-def get_airports_in_range(connection, plane_param, player_state: dict) -> tuple[dict, list, list, bool]:
+def get_airports_in_range(connection, plane_param: dict, player_state: dict) -> tuple[dict, list, list, bool]:
     """
     Return airports in order, by distance
     :param plane_param: Plane's fuel, speed, etc.
