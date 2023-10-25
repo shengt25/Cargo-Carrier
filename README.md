@@ -41,11 +41,11 @@ The game uses an online database to store all game data, including airports info
 **However, with a free cloud database, the response time is not very good.**  
 To have a better experience, you can also use the local database.
 ### Use the local database
-Note: Make sure you have properly started the database server, and imported the database from file `flight_game.sql`
+Note: Make sure you have properly started the database server, and imported the database from file `cargo_carrier.sql`
 1. Open `main.py`
 2. Locate `# --- Database Source Config ---` at the bottom  
 3. Change `use_online_database = True` to `use_online_database = False`  
-4. Change other parameters in `local_database_config` to your local database server configuration
+4. Change other parameters in `local_database_config` the same as your local database server configuration
 ### Use the online database
 The game use online database by default. You don't need to do anything.  
 Or if you have changed it to use local database, you can change it back by: setting `use_online_database = True`
