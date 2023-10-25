@@ -7,23 +7,21 @@ from display import clear_screen, print_experience_notification, print_high_scor
 # ---------------------
 # GAME MAIN MENU
 # ---------------------
-def main(use_local_database):
+def main(use_online_database, database_config=None):
     # init database connection
-    if use_local_database:
-        db_host = "127.0.0.1"
-        db_name = "root"
-        db_password = "metro"
-    else:
-        db_host = "aws.connect.psdb.cloud"
-        db_name = "msivnka4jfbpdrj18yut"
-        db_password = "pscale_pw_4Nc4vK7Qjjl0SUgtQr6q9iCM3isIu3LVm7wAnWpq9T2"
+    if use_online_database:
+        database_config = {"host": "aws.connect.psdb.cloud",
+                           "user": "msivnka4jfbpdrj18yut",
+                           "password": "pscale_pw_4Nc4vK7Qjjl0SUgtQr6q9iCM3isIu3LVm7wAnWpq9T2",
+                           "database": "flight_game",
+                           "port": 3306}
 
     connection = mysql.connector.connect(
-        host=db_host,
-        port=3306,
-        database="flight_game",
-        user=db_name,
-        password=db_password,
+        host=database_config["host"],
+        port=database_config["port"],
+        database=database_config["database"],
+        user=database_config["user"],
+        password=database_config["password"],
         autocommit=True)
 
     # notify user to adjust or change to terminal
@@ -74,5 +72,16 @@ if __name__ == "__main__":
     # use local database or online database
     # if online database is slow or unstable, please use local database instead
 
-    use_local_database = False
-    main(use_local_database)
+    # --- Database Source Config ---
+    use_online_database = True
+    local_database_config = {"host": "127.0.0.1",
+                             "user": "root",
+                             "password": "metro",
+                             "database": "flight_game",
+                             "port": 3306}
+    # --- Database Source Config ---
+
+    if use_online_database:
+        main(use_online_database)
+    else:
+        main(use_online_database, local_database_config)
