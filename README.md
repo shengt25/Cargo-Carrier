@@ -9,7 +9,7 @@ Remember - airlines really value flying to different airports, this can work to 
 As you take off on your maiden flight, your journey begins. Your choices and strategy will determine your success or failure.
 The European skies are yours to navigate, but the path to victory demands cold calculation and skillful decision-making.
 ## Objective
- Objective: Win €20 000 in 5 days.
+ Objective: Win €20 000 in 5 days (in-game days).
 ## Rules
 1. Buy fuel to fly, fly to earn, and keep low emission (calculated for final score)
 2. Make choice when arrival, with risk and reward.
@@ -20,7 +20,7 @@ The European skies are yours to navigate, but the path to victory demands cold c
 1. **Download the game**  
     `git clone https://github.com/shengt25/cargo_carrier.git`
 2. **Enter the game directory**  
-    `cd flygame`
+    `cd cargo_carrier`
 3. **Run the game**  
     `python3 main.py`
 ## Game Play
