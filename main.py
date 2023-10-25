@@ -11,9 +11,9 @@ def main(use_online_database, database_config=None):
     # init database connection
     if use_online_database:
         database_config = {"host": "aws.connect.psdb.cloud",
-                           "user": "msivnka4jfbpdrj18yut",
-                           "password": "pscale_pw_4Nc4vK7Qjjl0SUgtQr6q9iCM3isIu3LVm7wAnWpq9T2",
-                           "database": "flight_game",
+                           "user": "dxqpz25yy8kfdhyfsaja",
+                           "password": "pscale_pw_6thKhkwxlyLOrxODDjTP91kJsehBJWJC93ynBxsjFrb",
+                           "database": "cargo_carrier",
                            "port": 3306}
 
     connection = mysql.connector.connect(
@@ -77,7 +77,7 @@ if __name__ == "__main__":
     local_database_config = {"host": "127.0.0.1",
                              "user": "root",
                              "password": "metro",
-                             "database": "flight_game",
+                             "database": "cargo_carrier",
                              "port": 3306}
     # --- Database Source Config ---
 
