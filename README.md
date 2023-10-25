@@ -16,13 +16,28 @@ The European skies are yours to navigate, but the path to victory demands cold c
 3. Visit new airports, to find special treasure! (you have a detector)
 
 # How to play
-## Installation
+## Dependency
+1. Install `mysql.connector` for database connection
+    ```
+    pip install mysql.connector-python
+    ```
+2. Install `geopy` for calculating distance between airports
+    ```
+    pip install geopy
+    ``` 
+## Install
 1. **Download the game**  
-    `git clone https://github.com/shengt25/cargo_carrier.git`
+    ```
+    git clone https://github.com/shengt25/cargo_carrier.git
+    ```
 2. **Enter the game directory**  
-    `cd cargo_carrier`
+    ```
+    cd cargo_carrier
+    ```
 3. **Run the game**  
-    `python3 main.py`
+    ```
+    python3 main.py
+    ```
 ## Game Play
 After entering the main menu, you can some options to choose from.
 1. **New Game**  
