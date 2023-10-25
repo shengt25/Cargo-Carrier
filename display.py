@@ -20,7 +20,7 @@ def print_high_score(connection):
               f"{'CO2 Emission':{a}{w2}} | {'Time Left':{a}{w2}} | {'Treasure':{a}{w1}}")
     clear_screen()
     print("-" * len(header))
-    print(f"{'   HIGH SCORE   ':-{a}{len(header)}}")
+    print(f"{'   HIGH SCORE   ':{a}{len(header)}}")
     print("-" * len(header))
     print(header)
     print("-" * len(header))
