@@ -11,10 +11,10 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2  # Checkout your repository
+      uses: actions/checkout@v3  # Checkout your repository
 
     - name: Setup Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v3
       with:
         python-version: 3.8  # Set the Python version you need
 
@@ -34,7 +34,7 @@ jobs:
 
     - name: Upload artifact
     - name: Upload artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: cargo_carrier.exe
         path: dist/Cargo_Carrier_Windows.exe  # Upload the exe file as an artifact
