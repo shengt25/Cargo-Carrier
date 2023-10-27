@@ -28,8 +28,13 @@ jobs:
       run: |
         pyinstaller --onefile main.py  # Package your_script.py to an exe file
 
+    - name: Rename exe file
+      run: |
+        move dist/main.exe dist/Cargo_Carrier_Windows.exe  # Rename the exe file
+
+    - name: Upload artifact
     - name: Upload artifact
       uses: actions/upload-artifact@v2
       with:
         name: cargo_carrier.exe
-        path: dist/cargo_carrier.exe  # Upload the exe file as an artifact
+        path: dist/Cargo_Carrier_Windows.exe  # Upload the exe file as an artifact
