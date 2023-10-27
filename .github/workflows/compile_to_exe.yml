@@ -30,7 +30,7 @@ jobs:
 
     - name: Rename exe file
       run: |
-        move dist/main.exe dist/Cargo_Carrier_Windows.exe  # Rename the exe file
+        move dist\main.exe dist\Cargo_Carrier_Windows.exe  # Rename the exe file
 
     - name: Upload artifact
     - name: Upload artifact
