@@ -30,10 +30,17 @@ jobs:
 
     - name: Rename exe file
       run: |
-        move dist/main.exe dist/Cargo_Carrier_Windows.exe  # Rename the exe file
+        move dist/main.exe dist/Cargo_Carrier.exe  # Rename the exe file
 
     - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
         name: cargo_carrier.exe
-        path: dist/Cargo_Carrier_Windows.exe  # Upload the exe file as an artifact
+        path: dist/Cargo_Carrier.exe  # Upload the exe file as an artifact
+
+    - name: Create GitHub Release
+      env:
+        GH_TOKEN: ${{ secrets.GH_PAT }}  # Your GitHub token
+      run: |
+        gh auth login --with-token <<< "${GH_TOKEN}"
+        gh release create ${{ github.ref }} dist\Cargo_Carrier.exe --title "Release ${{ github.ref }}" --notes "Release notes for ${{ github.ref }}" --label "Cargo_Carrier_Windows"      
