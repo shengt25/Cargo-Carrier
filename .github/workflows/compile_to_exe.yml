@@ -26,7 +26,7 @@ jobs:
 
     - name: Package code to exe
       run: |
-        pyinstaller --onefile your_script.py  # Package your_script.py to an exe file
+        pyinstaller --onefile main.py  # Package your_script.py to an exe file
 
     - name: Upload artifact
       uses: actions/upload-artifact@v2
