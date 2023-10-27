@@ -1,0 +1,35 @@
+name: Build and Package
+
+on:
+  push:
+    branches:
+      - main  # Trigger the workflow on push to the main branch
+
+jobs:
+  build:
+    runs-on: windows-latest  # Use the latest Windows environment
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2  # Checkout your repository
+
+    - name: Setup Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8  # Set the Python version you need
+
+    - name: Install dependencies
+      run: |
+        pip install mysql.connector-python
+        pip install geopy
+        pip install pyinstaller  # Install PyInstaller or any other tool you use for packaging
+
+    - name: Package code to exe
+      run: |
+        pyinstaller --onefile your_script.py  # Package your_script.py to an exe file
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: cargo_carrier.exe
+        path: dist/cargo_carrier.exe  # Upload the exe file as an artifact
