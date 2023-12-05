@@ -15,6 +15,7 @@ class Shop:
             if self.player.money >= expense:
                 self.player.update_value(money_change=-expense)
                 response = {"success": True,
+                            "player": self.player.get_all_data(),
                             "message": f"Bought {item} successfully"}
             else:
                 response = {"success": False,
@@ -28,6 +29,7 @@ class Shop:
             self.player.update_value(fuel_change=amount, money_change=-expense)
             message = "[ok] buy: fuel"
             response = {"success": True,
+                        "player": self.player.get_all_data(),
                         "message": message}
         else:
             message = "[fail] buy: fuel"
@@ -42,6 +44,7 @@ class Shop:
             self.player.update_value(money_change=-expense)
             message = "[ok] buy: fuel"
             response = {"success": True,
+                        "player": self.player.get_all_data(),
                         "message": message}
         else:
             message = "[fail] buy: fuel"
