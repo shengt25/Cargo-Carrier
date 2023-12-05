@@ -191,3 +191,7 @@ def unload(game_id):
 
 if __name__ == '__main__':
     app.run(debug=True, host="127.0.0.1", port=5000)
+
+    # ssl_context = ("/etc/letsencrypt/live/st17.fyi/fullchain.pem", "/etc/letsencrypt/live/st17.fyi/privkey.pem")
+    # app.run(debug=False, host="0.0.0.0", port=443, ssl_context=ssl_context)
+
