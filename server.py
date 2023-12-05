@@ -23,8 +23,6 @@ def new_game():
     game_id = generate_game_id()
     print(f"{game_id}: New game")
     game_manager.game_list[game_id] = Game(game_id, database_config, item_list)
-
-    game_manager.game_list[game_id].airport_manager.gen_airports(10)
     return redirect(f"/game/{game_id}")
 
 
@@ -47,7 +45,7 @@ def fetch(game_id):
 
     print(f"{game_id}: Fetch game data")
     response_player = game_manager.game_list[game_id].player.get_state()
-    response_airports = game_manager.game_list[game_id].airport_manager.get_airports()
+    response_airports = game_manager.game_list[game_id].plane.airports
     response = {"player": response_player, "airports": response_airports}
     return response
 

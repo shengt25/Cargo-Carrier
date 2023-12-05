@@ -4,7 +4,7 @@ import random
 
 class Plane:
     def __init__(self, player, database, airports, fuel_per_km, speed_per_h, emission_per_km, reward_per_km,
-                 hire_cost, detector_prob_per_10k_km, debug=False):
+                 hire_cost, debug=False):
         self.player = player
         self.airports = airports
         self.accessibility = {}
@@ -16,7 +16,6 @@ class Plane:
         self.reward_per_km = reward_per_km
 
         self.hire_cost = hire_cost
-        self.detector_prob_per_10k_km = detector_prob_per_10k_km
 
         self.debug = debug
 
@@ -102,31 +101,16 @@ class Plane:
             parameter = (self.player.game_id, ident)
             self.database.query(sql_query, parameter)
 
-            # update detector
-            distance = self.calculate_distance(self.player.location, ident)
-            new_prob = self._update_detector(distance)
-            self.player.treasure_prob = new_prob
-            response["update_detector"] = True
-            response["new_prob"] = new_prob
-            sql_query = "UPDATE game SET treasure_prob=%s WHERE game_id=%s"
-            parameter = (new_prob, self.player.game_id)
-            self.database.query(sql_query, parameter)
+            # # update detector
+            # distance = self.calculate_distance(self.player.location, ident)
+            # new_prob = self._update_detector(distance)
+            # self.player.treasure_prob = new_prob
+            # response["update_detector"] = True
+            # response["new_prob"] = new_prob
+            # sql_query = "UPDATE game SET treasure_prob=%s WHERE game_id=%s"
+            # parameter = (new_prob, self.player.game_id)
+            # self.database.query(sql_query, parameter)
 
-        return response
-
-    def _update_detector(self, distance):
-        prob_up = self.detector_prob_per_10k_km * distance / 10000
-        self.player.update_value(treasure_prob_change=prob_up)
-        return self.player.treasure_prob
-
-    def detect(self):
-        response = {"success": False, "money_change": 0}
-        detection = random.randint(1, 10000)
-        if detection <= self.player.treasure_prob:
-            self.player.update_state(treasure_found=1)
-            self.player.update_value(money_change=20000)
-            response["success"] = True
-            response["money_change"] = 20000
         return response
 
     def unload(self, option):
@@ -152,3 +136,18 @@ class Plane:
             response["success"] = True
             self.player.update_value(money_change=response["money_change"])
         return response
+
+    # def _update_detector(self, distance):
+    #     prob_up = self.detector_prob_per_10k_km * distance / 10000
+    #     self.player.update_value(treasure_prob_change=prob_up)
+    #     return self.player.treasure_prob
+    #
+    # def detect(self):
+    #     response = {"success": False, "money_change": 0}
+    #     detection = random.randint(1, 10000)
+    #     if detection <= self.player.treasure_prob:
+    #         self.player.update_state(treasure_found=1)
+    #         self.player.update_value(money_change=20000)
+    #         response["success"] = True
+    #         response["money_change"] = 20000
+    #     return response

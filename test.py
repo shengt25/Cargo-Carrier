@@ -1,6 +1,5 @@
 from Player import Player
 from Plane import Plane
-from AirportManager import AirportManager
 from utils import Database
 
 if __name__ == "__main__":
@@ -17,4 +16,4 @@ if __name__ == "__main__":
 
     airport.gen_airports(10)
     print(airport.get_airports())
-    print(airport.get_airports_accessibility())
+    print(plane.get_airports_accessibility())
