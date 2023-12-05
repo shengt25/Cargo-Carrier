@@ -27,7 +27,7 @@ def game(game_id):
         print_log(game_id, "[fail] game: game not found")
         webpage = "<h1>Game not found</h1>"
     else:
-        print_log(game_id, "Game started")
+        print_log(game_id, "[ok] game: game started")
         webpage = "<h1>Welcome to the game</h1>" + "<br>" + f"game_id: {game_id}"  # TODO fake response
     return webpage
 
@@ -103,6 +103,7 @@ def new_game():
     game_list[game_id] = Game(game_id=game_id,
                               database_param=database_param,
                               player_name=player_name,
+                              airport_number=airport_number,
                               shop_param=shop_param,
                               player_param=player_param,
                               plane_param=plane_param)
@@ -169,7 +170,7 @@ def unload(game_id):
 
 if __name__ == '__main__':
     game_list = {}
-
+    airport_number = 10
     database_param = {"host": "127.0.0.1",
                       "user": "root",
                       "password": "metro",
