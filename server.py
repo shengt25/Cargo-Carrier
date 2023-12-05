@@ -5,6 +5,27 @@ from Game import Game
 from datetime import datetime
 
 app = Flask(__name__)
+game_list = {}
+airport_number = 10
+database_param = {"host": "127.0.0.1",
+                  "user": "root",
+                  "password": "metro",
+                  "database": "cargo_carrier",
+                  "port": 3306}
+
+shop_param = {"fuel": {"price": 100, "description": "Fuel"},
+              "coffee": {"price": 1, "description": "Coffee"},
+              "airport": {"price": 1000, "description": "Airport"}}
+
+player_param = {"money": 100000,
+                "fuel": 100000,
+                "time": 800}
+
+plane_param = {"fuel_per_km": 0.1,
+               "speed_per_h": 1.2,
+               "emission_per_km": 1.2,
+               "reward_per_km": 2,
+               "hire_cost": 600}
 
 
 def generate_game_id():
@@ -169,25 +190,4 @@ def unload(game_id):
 
 
 if __name__ == '__main__':
-    game_list = {}
-    airport_number = 10
-    database_param = {"host": "127.0.0.1",
-                      "user": "root",
-                      "password": "metro",
-                      "database": "cargo_carrier",
-                      "port": 3306}
-
-    shop_param = {"fuel": {"price": 100, "description": "Fuel"},
-                  "coffee": {"price": 1, "description": "Coffee"},
-                  "airport": {"price": 1000, "description": "Airport"}}
-
-    player_param = {"money": 100000,
-                    "fuel": 100000,
-                    "time": 800}
-
-    plane_param = {"fuel_per_km": 0.1,
-                   "speed_per_h": 1.2,
-                   "emission_per_km": 1.2,
-                   "reward_per_km": 2,
-                   "hire_cost": 600}
     app.run(debug=True, host="127.0.0.1", port=5000)
