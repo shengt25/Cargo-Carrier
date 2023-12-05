@@ -27,7 +27,7 @@ def game(game_id):
         print_log(game_id, "[fail] game: game not found")
         webpage = "<h1>Game not found</h1>"
     else:
-        print_log(game_id, "[ok] game: in game home")
+        print_log(game_id, "[ok] game: game home page")
         webpage = "<h1>Welcome to the game</h1>" + "<br>" + f"game_id: {game_id}"  # TODO fake response
     return webpage
 
