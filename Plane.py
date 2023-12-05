@@ -4,10 +4,9 @@ import random
 
 class Plane:
     def __init__(self, player, database, airports, fuel_per_km, speed_per_h, emission_per_km, reward_per_km,
-                 hire_cost, debug=False):
+                 hire_cost, verbose=False):
         self.player = player
         self.airports = airports
-        self.accessibility = {}
         self.database = database
 
         self.fuel_per_km = fuel_per_km
@@ -17,137 +16,143 @@ class Plane:
 
         self.hire_cost = hire_cost
 
-        self.debug = debug
+        self.verbose = verbose
 
-    def calculate_distance(self, ident1: str, ident2: str) -> float:
-        """Calculate distance with two ident
-        :param ident1: ident of first airport
-        :param ident2: ident of first airport
-        :return: Rounded distance (float, with 2 decimal)"""
-        coordinates1 = (self.airports[ident1]["latitude_deg"], self.airports[ident1]["longitude_deg"])
-        coordinates2 = (self.airports[ident2]["latitude_deg"], self.airports[ident2]["longitude_deg"])
+        self.has_cargo = False
+        self.accessibility = {}
+
+    def calculate_distance(self, ident: str) -> float:
+        coordinates1 = (self.airports[self.player.location]["latitude_deg"],
+                        self.airports[self.player.location]["longitude_deg"])
+        coordinates2 = (self.airports[ident]["latitude_deg"],
+                        self.airports[ident]["longitude_deg"])
         airports_distance = geo_distance(coordinates1, coordinates2).km
         return round(airports_distance)
 
-    def calculate_fuel_consumption(self, ident1, ident2):
-        distance = self.calculate_distance(ident1, ident2)
+    def calculate_fuel_consumption(self, ident):
+        distance = self.calculate_distance(ident)
         fuel_consumption = distance * self.fuel_per_km
         return fuel_consumption
 
-    def calculate_time_consumption(self, ident1, ident2):
-        distance = self.calculate_distance(ident1, ident2)
+    def calculate_time_consumption(self, ident):
+        distance = self.calculate_distance(ident)
         time = distance / self.speed_per_h * 3600
         return time
 
-    def calculate_emission_consumption(self, ident1, ident2):
-        distance = self.calculate_distance(ident1, ident2)
+    def calculate_emission_consumption(self, ident):
+        distance = self.calculate_distance(ident)
         emission_consumption = distance * self.emission_per_km
         return emission_consumption
 
-    def can_reach_fuel(self, ident1, ident2):
-        fuel_consumption = self.calculate_fuel_consumption(ident1, ident2)
+    def can_reach_fuel(self, ident):
+        fuel_consumption = self.calculate_fuel_consumption(ident)
         fuel = self.player.fuel
         if fuel_consumption <= fuel:
             return True
         else:
             return False
 
-    def can_reach_time(self, ident1, ident2):
-        time_consumption = self.calculate_time_consumption(ident1, ident2)
+    def can_reach_time(self, ident):
+        time_consumption = self.calculate_time_consumption(ident)
         time = self.player.time
         if time_consumption <= time:
             return True
         else:
             return False
 
-    def get_airports_accessibility(self):
+    def get_all_airports_accessibility(self):
         airports_accessibility = {}
         for ident in self.airports.keys():
             if ident != self.player.location:
                 airports_accessibility[ident] = {}
-                if self.can_reach_fuel(self.player.location, ident):
+                if self.can_reach_fuel(ident):
                     airports_accessibility[ident]["fuel"] = True
                 else:
                     airports_accessibility[ident]["fuel"] = False
-                if self.can_reach_time(self.player.location, ident):
+                if self.can_reach_time(ident):
                     airports_accessibility[ident]["time"] = True
                 else:
                     airports_accessibility[ident]["time"] = False
         self.accessibility = airports_accessibility
         return airports_accessibility
 
+    def get_all_airports(self):
+        return self.airports
+
     def fly(self, ident):
-        # check if enough fuel and time for destination
-        if not self.can_reach_fuel(self.player.location, ident):
-            return {"success": False}
+        if self.has_cargo:
+            response = {"success": False,
+                        "reason": "hack",
+                        "message": "Unload first, hacker!"}
+            return response
+        else:
+            can_reach_fuel = self.can_reach_fuel(ident)
+            can_reach_time = self.can_reach_time(ident)
+            if not can_reach_fuel and not can_reach_time:
+                response = {"success": False,
+                            "reason": "both",
+                            "message": "Not enough fuel and time"}
+                return response
+            if not self.can_reach_time(ident):
+                response = {"success": False,
+                            "reason": "time",
+                            "message": "Not enough time"}
+                return response
+            elif not self.can_reach_fuel(ident):
+                response = {"success": False,
+                            "reason": "fuel",
+                            "message": "Not enough fuel and time"}
+                return response
 
-        if not self.can_reach_time(self.player.location, ident):
-            return {"success": False}
+            self.has_cargo = True
+            # calculate consumption
+            fuel_consumption = self.calculate_fuel_consumption(ident)
+            emission_consumption = self.calculate_emission_consumption(ident)
+            time_consumption = self.calculate_time_consumption(ident)
+            # update player's value and state
+            self.player.update_value(fuel_change=-fuel_consumption, emission_change=emission_consumption,
+                                     time_change=-time_consumption)
+            self.player.update_state(location=ident)
 
-        response = {"success": True, "update_detector": False, "new_prob": 0}
-
-        fuel_consumption = self.calculate_fuel_consumption(self.player.location, ident)
-        emission_consumption = self.calculate_emission_consumption(self.player.location, ident)
-        time_consumption = self.calculate_time_consumption(self.player.location, ident)
-
-        self.player.update_value(fuel_change=-fuel_consumption, emission_change=emission_consumption,
-                                 time_change=-time_consumption)
-        self.player.update_state(location=ident)
-
-        # if not visited, update visit and update detector
-        if self.airports[ident]["visit"] == 0:
-            self.airports[ident]["visit"] = 1
-            sql_query = "UPDATE game_airport SET visit=1 WHERE game_id=%s AND ident=%s"
-            parameter = (self.player.game_id, ident)
-            self.database.query(sql_query, parameter)
-
-            # # update detector
-            # distance = self.calculate_distance(self.player.location, ident)
-            # new_prob = self._update_detector(distance)
-            # self.player.treasure_prob = new_prob
-            # response["update_detector"] = True
-            # response["new_prob"] = new_prob
-            # sql_query = "UPDATE game SET treasure_prob=%s WHERE game_id=%s"
-            # parameter = (new_prob, self.player.game_id)
-            # self.database.query(sql_query, parameter)
-
-        return response
+            # if not visited, update visit
+            if self.airports[ident]["visit"] == 0:
+                self.airports[ident]["visit"] = 1
+                sql_query = "UPDATE game_airport SET visit=1 WHERE game_id=%s AND ident=%s"
+                parameter = (self.player.game_id, ident)
+                self.database.query(sql_query, parameter)
+            response = {"success": True,
+                        "player": self.player.get_all_data(),
+                        "message": "You can now unload."}
+            return response
 
     def unload(self, option):
-        response = {"success": False, "money_change": 0}
-        if option == 0:
-            self.player.update_value(money_change=-self.hire_cost)
-            response["success"] = True
-            response["money_change"] = -self.hire_cost
+        if not self.has_cargo:
+            response = {"success": False,
+                        "message": "How do you unload without cargo, hacker?"}
         else:
-            result = random.randint(1, 6)
-            if result == 1:
-                response["money_change"] = -self.player.money * 0.9
-            elif result == 2:
-                response["money_change"] = -1500
-            elif result == 3:
-                response["money_change"] = 0
-            elif result == 4:
-                response["money_change"] = 1500
-            elif result == 5:
-                response["money_change"] = 1800
-            elif result == 6:
-                response["money_change"] = self.player.money
-            response["success"] = True
-            self.player.update_value(money_change=response["money_change"])
+            self.has_cargo = False
+            if option == 0:
+                self.player.update_value(money_change=-self.hire_cost)
+                response = {"success": True,
+                            "option": option,
+                            "player": self.player.get_all_data(),
+                            "message": ""}
+            else:
+                dice_result = random.randint(1, 6)
+                if dice_result == 1:
+                    self.player.update_value(money_change=-self.player.money * 0.9)
+                elif dice_result == 2:
+                    self.player.update_value(money_change=-1500)
+                elif dice_result == 3:
+                    pass
+                elif dice_result == 4:
+                    self.player.update_value(money_change=1500)
+                elif dice_result == 5:
+                    self.player.update_value(money_change=1800)
+                elif dice_result == 6:
+                    self.player.update_value(money_change=self.player.money)
+                response = {"success": True,
+                            "dice": dice_result,
+                            "player": self.player.get_all_data(),
+                            "message": ""}
         return response
-
-    # def _update_detector(self, distance):
-    #     prob_up = self.detector_prob_per_10k_km * distance / 10000
-    #     self.player.update_value(treasure_prob_change=prob_up)
-    #     return self.player.treasure_prob
-    #
-    # def detect(self):
-    #     response = {"success": False, "money_change": 0}
-    #     detection = random.randint(1, 10000)
-    #     if detection <= self.player.treasure_prob:
-    #         self.player.update_state(treasure_found=1)
-    #         self.player.update_value(money_change=20000)
-    #         response["success"] = True
-    #         response["money_change"] = 20000
-    #     return response

@@ -1,5 +1,5 @@
 class Player:
-    def __init__(self, database, game_id, name, money, fuel, time, debug=False):
+    def __init__(self, database, game_id, name, money, fuel, time, verbose=False):
         self.database = database
         self.game_id = game_id
         self.name = name
@@ -11,7 +11,9 @@ class Player:
         self.score = 0
         self.finish = 0
         self.home = ""
-        self.debug = debug
+        self.verbose = verbose
+        self.hack_mode = False
+
         sql_query = ("""INSERT INTO game (game_id, money, fuel, emission, location, time, screen_name, home, finish, score)
                          VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 0, 0)""")
         parameter = self.game_id, self.money, self.fuel, self.emission, self.location, self.time, self.name, self.home
@@ -44,10 +46,11 @@ class Player:
         parameter = (self.location, self.finish, self.score, self.home, self.game_id)
         self.database.query(sql_query, parameter)
 
-    def update_state_from_database(self):
-        pass
-
-    def get_state(self):
+    def get_all_data(self):
         response = {"money": self.money, "fuel": self.fuel, "emission": self.emission, "time": self.time,
                     "location": self.location, "finish": self.finish, "score": self.score}
         return response
+
+    def update_all_data_from_database(self):
+        # this function is mainly for modifying data manually (or hack)
+        pass
