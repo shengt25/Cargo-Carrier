@@ -19,7 +19,7 @@ shop_param = {"fuel": {"price": 100, "description": "Fuel"},
 
 player_param = {"money": 100000,
                 "fuel": 100000,
-                "time": 800}
+                "time": 80000}
 
 plane_param = {"fuel_per_km": 0.1,
                "speed_per_h": 1.2,
