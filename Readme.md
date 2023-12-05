@@ -1,5 +1,13 @@
 # API Testing Guide
 
+## Replace server with server address
+
+The server address can be `http://127.0.0.1:5000` when you run it locally
+
+Or you can just use `https://st17.fyi`, it is published in online server.
+
+## Test using Postman or others
+
 ### Start new game:
 
 POST: `{"name": <name>}` 
@@ -9,6 +17,8 @@ To:  `<server>/game/new-game`
 Response : `game id`
 
 
+
+For example: send `{"name": Amir}` to `https://st17.fyi/game/new-game`
 
 ### Game page
 
