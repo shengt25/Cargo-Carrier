@@ -21,8 +21,8 @@ player_param = {"money": 100000,
                 "fuel": 100000,
                 "time": 80000}
 
-plane_param = {"fuel_per_km": 0.1,
-               "speed_per_h": 1.2,
+plane_param = {"fuel_per_km": 1,
+               "speed_per_h": 800,
                "emission_per_km": 1.2,
                "reward_per_km": 2,
                "hire_cost": 600}
