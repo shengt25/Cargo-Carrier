@@ -48,60 +48,59 @@ class Plane:
         fuel_consumption = self.calculate_fuel_consumption(ident)
         fuel = self.player.fuel
         if fuel_consumption <= fuel:
-            return True
+            return True, fuel_consumption, fuel
         else:
-            return False
+            return False, fuel_consumption, fuel
 
     def can_reach_time(self, ident):
         time_consumption = self.calculate_time_consumption(ident)
         time = self.player.time
         if time_consumption <= time:
-            return True
+            return True, time_consumption, time
         else:
-            return False
-
-    def get_all_airports_accessibility(self):
-        airports_accessibility = {}
-        for ident in self.airports.keys():
-            if ident != self.player.location:
-                airports_accessibility[ident] = {}
-                if self.can_reach_fuel(ident):
-                    airports_accessibility[ident]["fuel"] = True
-                else:
-                    airports_accessibility[ident]["fuel"] = False
-                if self.can_reach_time(ident):
-                    airports_accessibility[ident]["time"] = True
-                else:
-                    airports_accessibility[ident]["time"] = False
-        self.accessibility = airports_accessibility
-        return airports_accessibility
+            return False, time_consumption, time
 
     def get_all_airports(self):
+        for ident in self.airports.keys():
+            if ident != self.player.location:
+                success_reach_fuel, _, _ = self.can_reach_fuel(ident)
+                success_reach_time, _, _ = self.can_reach_time(ident)
+                if success_reach_fuel:
+                    self.airports[ident]["fuel"] = True
+                else:
+                    self.airports[ident]["fuel"] = False
+                if success_reach_time:
+                    self.airports[ident]["time"] = True
+                else:
+                    self.airports[ident]["time"] = False
         return self.airports
 
     def fly(self, ident):
+        # TODO: validate ident
         if self.has_cargo:
             response = {"success": False,
                         "reason": "hack",
                         "message": "Unload first, hacker!"}
             return response
         else:
-            can_reach_fuel = self.can_reach_fuel(ident)
-            can_reach_time = self.can_reach_time(ident)
-            if not can_reach_fuel and not can_reach_time:
+            success_reach_fuel, fuel_consumption, fuel = self.can_reach_fuel(ident)
+            success_reach_time, time_consumption, time = self.can_reach_time(ident)
+            if not success_reach_fuel and not success_reach_time:
                 response = {"success": False,
                             "reason": "both",
-                            "message": "Not enough fuel and time"}
+                            "message": f"Not enough fuel and time, fuel needed: {fuel_consumption}, "
+                                       f"time needed: {time_consumption}. You have {fuel} fuel and {time} time."}
                 return response
-            if not self.can_reach_time(ident):
+            if not success_reach_time:
                 response = {"success": False,
                             "reason": "time",
-                            "message": "Not enough time"}
+                            "message": f"Not enough time, time needed: {time_consumption}. You have {time} time."}
                 return response
-            elif not self.can_reach_fuel(ident):
+            elif not success_reach_fuel:
                 response = {"success": False,
                             "reason": "fuel",
-                            "message": "Not enough fuel and time"}
+                            "message": f"Not enough fuel and time, fuel needed: {fuel_consumption}. "
+                                       f"You have {fuel} fuel."}
                 return response
 
             self.has_cargo = True
