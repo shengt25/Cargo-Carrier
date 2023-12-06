@@ -69,6 +69,7 @@ const gameSetup = async (gameId) => {
         airportMarkers.clearLayers();
         const status = await getData(`${url}${gameId}/get-player-data`);
 
+        const name = document.getElementById('player-name');
         const time = document.getElementById('time-left');
         const money = document.getElementById('money');
         const fuel = document.getElementById('fuel');
@@ -78,6 +79,7 @@ const gameSetup = async (gameId) => {
         console.log(status); // Check the structure of the returned data
 
         // Update your HTML elements with the retrieved data
+        name.innerText = `${status.player.name}`;
         time.innerText = `${status.player.time}`;
         money.innerText = `${status.player.money}`;
         fuel.innerText = `${status.player.fuel}`;

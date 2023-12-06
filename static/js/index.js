@@ -5,7 +5,7 @@ const postData = async (url, data) => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(data)  // convert JavaScript object to JSON string
+      body: JSON.stringify(data), // convert JavaScript object to JSON string
     });
     return await response.json();
   } catch (error) {
@@ -15,7 +15,8 @@ const postData = async (url, data) => {
 };
 document.getElementById("btn-new-game").addEventListener("click", async () => {
   const url = "http://127.0.0.1:5000/game/new-game";
-  const data = { name: "amir" };
+  const name = document.getElementById("input-player-name").value;
+  const data = { name: name };
   const response = await postData(url, data);
   const gameID = response.gameID;
   console.log(`Game ID: ${gameID}`);
