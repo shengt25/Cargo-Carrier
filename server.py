@@ -5,9 +5,10 @@ from Game import Game
 from datetime import datetime
 from flask_cors import CORS
 
+local = True
+
 app = Flask(__name__)
 cors = CORS(app)
-
 game_list = {}
 airport_number = 10
 database_param = {"host": "127.0.0.1",
@@ -45,6 +46,12 @@ def print_log(game_id, text):
     print(formatted_text)
 
 
+@app.route("/")
+def index():
+    webpage = render_template('index.html')
+    return webpage
+
+
 @app.route("/game/<game_id>")
 def game(game_id):
     if game_id not in game_list:
@@ -52,7 +59,7 @@ def game(game_id):
         webpage = "<h1>Game not found</h1>"
     else:
         print_log(game_id, "[ok] game: game home page")
-        webpage = "<h1>Welcome to the game</h1>" + "<br>" + f"game_id: {game_id}"  # TODO fake response
+        webpage = render_template('game.html')
     return webpage
 
 
@@ -191,10 +198,9 @@ def unload(game_id):
         print_log(game_id, response["message"])
     return response
 
-app.run(debug=True, host="127.0.0.1", port=5000)
 
-# if __name__ == '__main__':
-
-    # ssl_context = ("/etc/letsencrypt/live/st17.fyi/fullchain.pem", "/etc/letsencrypt/live/st17.fyi/privkey.pem")
-    # app.run(debug=False, host="0.0.0.0", port=443, ssl_context=ssl_context)
-
+if local:
+    app.run(debug=True, host="127.0.0.1", port=5000)
+else:
+    ssl_context = ("/etc/letsencrypt/live/st17.fyi/fullchain.pem", "/etc/letsencrypt/live/st17.fyi/privkey.pem")
+    app.run(debug=False, host="0.0.0.0", port=443, ssl_context=ssl_context)

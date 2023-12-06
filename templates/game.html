@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="/static/css/style.css">
+
+    <title>Fly Game</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin=""/>
+    <!-- Make sure you put this AFTER Leaflet's CSS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+</head>
+<body>
+<main>
+    <div class="wrapper">
+        <div class="map-status">
+            <div class="status">
+                <img src="https://img.icons8.com/ios/50/logout-rounded-left.png" alt="logout-rounded-left">
+                <table>
+                    <tr>
+                        <td colspan="2">
+                            <h3 id="player-name">Player Name</h3>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Time Left: <span id="time-left">24</span>h</td>
+                        <td>Money: <span id="money">999</span>kg</td>
+                        <td>Fuel: <span id="fuel">0</span>kg</td>
+                        <td>CO2 Emission: <span id="co2-emission">0</span>kg</td>
+                        <td>Current location: <span id="location">ELHK</span></td>
+                        <!-- <td> Treasure Detector: <span id="treasure">0.05</span>%</td> -->
+                    </tr>
+                </table>
+            </div>
+            <div class="shop-map">
+                <button id="shop" class="btn">Shop</button>
+                <button class="btn">Map</button>
+            </div>
+            <div id="map" style="height: 500px; width: 100%;"></div>
+        </div>
+        <div class="right">
+            <div id="video-dice">
+                <h2>Video/dice</h2>
+            </div>
+            <div id="flight-protocol">
+                <h2>Fly Protocol</h2>
+                <!-- <p id="name">Airport name: </p>
+                <p>Fuel: </p>
+                <p>Money: </p>
+                <p>Co2: </p> -->
+            </div>
+            <button class="btn fly">Fly</button>
+        </div>
+    </div>
+</main>
+
+<script src="/static/js/game.js"></script>
+
+</body>
+</html>
