@@ -47,8 +47,8 @@ class Player:
         self.database.query(sql_query, parameter)
 
     def get_all_data(self):
-        response = {"money": self.money, "fuel": self.fuel, "emission": self.emission, "time": self.time,
-                    "location": self.location, "finish": self.finish, "score": self.score}
+        response = {"name": self.name, "money": self.money, "fuel": self.fuel, "emission": self.emission,
+                    "time": self.time, "location": self.location, "finish": self.finish, "score": self.score}
         return response
 
     def update_all_data_from_database(self):
