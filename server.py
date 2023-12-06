@@ -3,13 +3,16 @@ import hashlib
 import time
 from Game import Game
 from datetime import datetime
+from flask_cors import CORS
 
 app = Flask(__name__)
+cors = CORS(app)
+
 game_list = {}
 airport_number = 10
 database_param = {"host": "127.0.0.1",
                   "user": "root",
-                  "password": "metro",
+                  "password": "pwd",
                   "database": "cargo_carrier",
                   "port": 3306}
 
@@ -188,9 +191,9 @@ def unload(game_id):
         print_log(game_id, response["message"])
     return response
 
+app.run(debug=True, host="127.0.0.1", port=5000)
 
-if __name__ == '__main__':
-    app.run(debug=True, host="127.0.0.1", port=5000)
+# if __name__ == '__main__':
 
     # ssl_context = ("/etc/letsencrypt/live/st17.fyi/fullchain.pem", "/etc/letsencrypt/live/st17.fyi/privkey.pem")
     # app.run(debug=False, host="0.0.0.0", port=443, ssl_context=ssl_context)
