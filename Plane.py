@@ -31,18 +31,23 @@ class Plane:
 
     def calculate_fuel_consumption(self, ident):
         distance = self.calculate_distance(ident)
-        fuel_consumption = distance * self.fuel_per_km
+        fuel_consumption = round(distance * self.fuel_per_km)
         return fuel_consumption
 
     def calculate_time_consumption(self, ident):
         distance = self.calculate_distance(ident)
-        time = distance / self.speed_per_h * 3600
+        time = round(distance / self.speed_per_h * 3600)
         return time
 
     def calculate_emission_consumption(self, ident):
         distance = self.calculate_distance(ident)
-        emission_consumption = distance * self.emission_per_km
+        emission_consumption = round(distance * self.emission_per_km)
         return emission_consumption
+
+    def calculate_reward(self, ident):
+        distance = self.calculate_distance(ident)
+        reward = round(distance * self.reward_per_km)
+        return reward
 
     def can_reach_fuel(self, ident):
         fuel_consumption = self.calculate_fuel_consumption(ident)
@@ -63,16 +68,21 @@ class Plane:
     def get_all_airports(self):
         for ident in self.airports.keys():
             if ident != self.player.location:
-                success_reach_fuel, _, _ = self.can_reach_fuel(ident)
-                success_reach_time, _, _ = self.can_reach_time(ident)
+                success_reach_fuel, fuel_consumption, _ = self.can_reach_fuel(ident)
+                success_reach_time, time_consumption, _ = self.can_reach_time(ident)
+                reward = self.calculate_reward(ident)
+
+                self.airports[ident]["reward"] = reward
+                self.airports[ident]["fuel"] = fuel_consumption
+                self.airports[ident]["time"] = time_consumption
                 if success_reach_fuel:
-                    self.airports[ident]["fuel"] = True
+                    self.airports[ident]["range-fuel"] = True
                 else:
-                    self.airports[ident]["fuel"] = False
+                    self.airports[ident]["range-fuel"] = False
                 if success_reach_time:
-                    self.airports[ident]["time"] = True
+                    self.airports[ident]["range-time"] = True
                 else:
-                    self.airports[ident]["time"] = False
+                    self.airports[ident]["range-time"] = False
         return self.airports
 
     def fly(self, ident):
