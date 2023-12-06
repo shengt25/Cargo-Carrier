@@ -75,6 +75,7 @@ class Plane:
                 self.airports[ident]["reward"] = reward
                 self.airports[ident]["fuel"] = fuel_consumption
                 self.airports[ident]["time"] = time_consumption
+                self.airports[ident]["emission"] = self.calculate_emission_consumption(ident)
                 if success_reach_fuel:
                     self.airports[ident]["range-fuel"] = True
                 else:
