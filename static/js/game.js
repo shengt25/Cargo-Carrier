@@ -56,7 +56,7 @@ const postData = async (url, json) => {
 
 const getGameIdFromUrl = () => {
     const pathParts = window.location.pathname.split("/");
-    return pathParts[pathParts.length - 1]; // 获取 URL 中的最后一部分
+    return pathParts[pathParts.length - 1];
 };
 
 // main function to set up the game

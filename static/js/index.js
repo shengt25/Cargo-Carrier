@@ -14,7 +14,7 @@ const postData = async (url, data) => {
     }
 };
 document.getElementById("btn-new-game").addEventListener("click", async () => {
-    const url = "http://127.0.0.1:5000/game/new-game";
+    const url = "/game/new-game";
     const name = document.getElementById("input-player-name").value;
     const data = { name: name };
     const response = await postData(url, data);
