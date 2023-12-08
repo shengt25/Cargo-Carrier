@@ -66,10 +66,9 @@ body {
 
 /* Modal Styles */
 .modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
     justify-content: center;
     align-items: center;
     width: 100%;
