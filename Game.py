@@ -18,4 +18,5 @@ class Game:
                            speed_per_h=plane_param["speed_per_h"],
                            emission_per_km=plane_param["emission_per_km"],
                            reward_per_km=plane_param["reward_per_km"],
-                           hire_cost=plane_param["hire_cost"], )
+                           hire_cost=plane_param["hire_cost"],
+                           fuel_price=shop_param["fuel"]["price"],)

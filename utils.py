@@ -51,8 +51,10 @@ def gen_airports(database, player, number):
     # save to dictionary
     home_set = False
     for airport in response:
+        # wrap data in ident
         ident = airport["ident"]
-        del airport["ident"]
+        airports[ident] = airport
+
         # set home airport and current airport
         if not home_set:
             player.update_state(home=ident, location=ident)
@@ -60,7 +62,6 @@ def gen_airports(database, player, number):
             home_set = True
         else:
             airport["visit"] = 0
-        airports[ident] = airport
 
     # save to database
     for ident in airports.keys():

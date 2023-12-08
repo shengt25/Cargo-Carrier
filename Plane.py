@@ -1,10 +1,11 @@
 from geopy.distance import distance as geo_distance  # prevent shadow_name warning (distance is name of variable)
 import random
+import copy
 
 
 class Plane:
     def __init__(self, player, database, airports, fuel_per_km, speed_per_h, emission_per_km, reward_per_km,
-                 hire_cost, verbose=False):
+                 hire_cost, fuel_price, verbose=False):
         self.player = player
         self.airports = airports
         self.database = database
@@ -17,9 +18,9 @@ class Plane:
         self.hire_cost = hire_cost
 
         self.verbose = verbose
-
         self.has_cargo = False
-        self.accessibility = {}
+        self.update_all_airports()
+        self.fuel_price = fuel_price
 
     def calculate_distance(self, ident: str) -> float:
         coordinates1 = (self.airports[self.player.location]["latitude_deg"],
@@ -65,75 +66,115 @@ class Plane:
         else:
             return False, time_consumption, time
 
-    def get_all_airports(self):
-        for ident in self.airports.keys():
+    def update_all_airports(self):
+        can_go_somewhere = 0
+        for ident in self.airports:
             if ident != self.player.location:
                 success_reach_fuel, fuel_consumption, _ = self.can_reach_fuel(ident)
                 success_reach_time, time_consumption, _ = self.can_reach_time(ident)
                 reward = self.calculate_reward(ident)
-
+                self.airports[ident]["current"] = False
+                self.airports[ident]["distance"] = self.calculate_distance(ident)
                 self.airports[ident]["reward"] = reward
                 self.airports[ident]["fuel"] = fuel_consumption
                 self.airports[ident]["time"] = time_consumption
                 self.airports[ident]["emission"] = self.calculate_emission_consumption(ident)
                 if success_reach_fuel:
-                    self.airports[ident]["range-fuel"] = True
+                    self.airports[ident]["range_fuel"] = True
+                    can_go_somewhere += 1
                 else:
-                    self.airports[ident]["range-fuel"] = False
+                    self.airports[ident]["range_fuel"] = False
                 if success_reach_time:
-                    self.airports[ident]["range-time"] = True
+                    self.airports[ident]["range_time"] = True
+                    can_go_somewhere += 1
                 else:
-                    self.airports[ident]["range-time"] = False
+                    self.airports[ident]["range_time"] = False
+            else:
+                self.airports[ident]["current"] = True
+        if can_go_somewhere == 0:
+            self.check_money_time_ending()
+
+    def get_all_airports(self):
         return self.airports
 
+    def check_money_time_ending(self):
+        can_go_somewhere = 0
+        money = self.player.money
+        fuel_buy = money / self.fuel_price
+        fuel = self.player.fuel
+        time = self.player.time
+        for ident in self.airports:
+            fuel_consumption = self.calculate_fuel_consumption(ident)
+            time_consumption = self.calculate_time_consumption(ident)
+            if fuel_consumption <= fuel and time_consumption <= time:
+                can_go_somewhere += 1
+        if can_go_somewhere == 0:
+            return True, f"[ok] check-ending With all money {money} you can have {fuel} + {fuel_buy} fuel, you can't go anywhere, game over."
+        else:
+            return False, f"[ok] check-ending With all money {money} you can have {fuel} + {fuel_buy} fuel, game continues."
+
     def fly(self, ident):
-        # TODO: validate ident
         if self.has_cargo:
             response = {"success": False,
                         "reason": "hack",
                         "message": "Unload first, hacker!"}
             return response
-        else:
-            success_reach_fuel, fuel_consumption, fuel = self.can_reach_fuel(ident)
-            success_reach_time, time_consumption, time = self.can_reach_time(ident)
-            if not success_reach_fuel and not success_reach_time:
-                response = {"success": False,
-                            "reason": "both",
-                            "message": f"Not enough fuel and time, fuel needed: {fuel_consumption}, "
-                                       f"time needed: {time_consumption}. You have {fuel} fuel and {time} time."}
-                return response
-            if not success_reach_time:
-                response = {"success": False,
-                            "reason": "time",
-                            "message": f"Not enough time, time needed: {time_consumption}. You have {time} time."}
-                return response
-            elif not success_reach_fuel:
-                response = {"success": False,
-                            "reason": "fuel",
-                            "message": f"Not enough fuel and time, fuel needed: {fuel_consumption}. "
-                                       f"You have {fuel} fuel."}
-                return response
 
-            self.has_cargo = True
-            # calculate consumption
-            fuel_consumption = self.calculate_fuel_consumption(ident)
-            emission_consumption = self.calculate_emission_consumption(ident)
-            time_consumption = self.calculate_time_consumption(ident)
-            # update player's value and state
-            self.player.update_value(fuel_change=-fuel_consumption, emission_change=emission_consumption,
-                                     time_change=-time_consumption)
-            self.player.update_state(location=ident)
-
-            # if not visited, update visit
-            if self.airports[ident]["visit"] == 0:
-                self.airports[ident]["visit"] = 1
-                sql_query = "UPDATE game_airport SET visit=1 WHERE game_id=%s AND ident=%s"
-                parameter = (self.player.game_id, ident)
-                self.database.query(sql_query, parameter)
-            response = {"success": True,
-                        "player": self.player.get_all_data(),
-                        "message": "You can now unload."}
+        if ident not in self.airports.keys():
+            response = {"success": False,
+                        "reason": "airport",
+                        "message": "Airport not found, what's wrong with the programmer?"}
             return response
+
+        success_reach_fuel, fuel_consumption, fuel = self.can_reach_fuel(ident)
+        success_reach_time, time_consumption, time = self.can_reach_time(ident)
+        if not success_reach_fuel and not success_reach_time:
+            response = {"success": False,
+                        "reason": "both",
+                        "message": f"Not enough fuel and time, fuel needed: {fuel_consumption}, "
+                                   f"time needed: {time_consumption}. You have {fuel} fuel and {time} time."}
+            return response
+
+        if not success_reach_time:
+            response = {"success": False,
+                        "reason": "time",
+                        "message": f"Not enough time, time needed: {time_consumption}. You have {time} time."}
+            return response
+
+        elif not success_reach_fuel:
+            response = {"success": False,
+                        "reason": "fuel",
+                        "message": f"Not enough fuel and time, fuel needed: {fuel_consumption}. "
+                                   f"You have {fuel} fuel."}
+            return response
+
+        self.has_cargo = True
+
+        # calculate consumption
+        fuel_consumption = self.airports[ident]["fuel"]
+        emission_consumption = self.airports[ident]["emission"]
+        time_consumption = self.airports[ident]["time"]
+        reward = self.airports[ident]["reward"]
+
+        # update player's value and state
+        last_ident = self.player.location
+        self.airports[last_ident]["current"] = False
+        self.airports[ident]["current"] = True
+        self.player.update_value(fuel_change=-fuel_consumption, emission_change=emission_consumption,
+                                 time_change=-time_consumption, money_change=reward)
+        self.player.update_state(location=ident)
+
+        # if not visited, update visit
+        if self.airports[ident]["visit"] == 0:
+            self.airports[ident]["visit"] = 1
+            sql_query = "UPDATE game_airport SET visit=1 WHERE game_id=%s AND ident=%s"
+            parameter = (self.player.game_id, ident)
+            self.database.query(sql_query, parameter)
+        response = {"success": True,
+                    "player": self.player.get_all_data(),
+                    "message": f"You fly to {ident} and now you can unload."}
+        self.update_all_airports()
+        return response
 
     def unload(self, option):
         if not self.has_cargo:
@@ -141,12 +182,12 @@ class Plane:
                         "message": "How do you unload without cargo, hacker?"}
         else:
             self.has_cargo = False
-            if option == 0:
+            if option == 0 or option == "0":
                 self.player.update_value(money_change=-self.hire_cost)
                 response = {"success": True,
                             "option": option,
                             "player": self.player.get_all_data(),
-                            "message": ""}
+                            "message": "You choose to hire"}
             else:
                 dice_result = random.randint(1, 6)
                 if dice_result == 1:
@@ -164,5 +205,5 @@ class Plane:
                 response = {"success": True,
                             "dice": dice_result,
                             "player": self.player.get_all_data(),
-                            "message": ""}
+                            "message": "You choose to unload yourself"}
         return response

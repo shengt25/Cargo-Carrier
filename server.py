@@ -21,9 +21,9 @@ shop_param = {"fuel": {"price": 100, "description": "Fuel"},
               "coffee": {"price": 1, "description": "Coffee"},
               "airport": {"price": 1000, "description": "Airport"}}
 
-player_param = {"money": 100000,
+player_param = {"money": 1000,
                 "fuel": 100000,
-                "time": 80000}
+                "time": 800000}
 
 plane_param = {"fuel_per_km": 1,
                "speed_per_h": 800,
@@ -199,8 +199,29 @@ def unload(game_id):
     return response
 
 
-if local:
-    app.run(debug=True, host="127.0.0.1", port=5000)
-else:
-    ssl_context = ("/etc/letsencrypt/live/st17.fyi/fullchain.pem", "/etc/letsencrypt/live/st17.fyi/privkey.pem")
-    app.run(debug=False, host="0.0.0.0", port=443, ssl_context=ssl_context)
+@app.route("/game/<game_id>/check-ending")
+def check_ending(game_id):
+    if game_id not in game_list:
+        message = "[fail] check-ending: game not found"
+        print_log(game_id, message)
+        response = {"success": False,
+                    "message": message}
+    else:
+        money_time_ending, message = game_list[game_id].plane.check_money_time_ending()
+        print_log(game_id, message)
+        if money_time_ending:
+            response = {"end": True,
+                        "type": "lose",
+                        "message": message}
+        else:
+            response = {"end": False,
+                        "message": message}
+    return response
+
+
+if __name__ == "__main__":
+    if local:
+        app.run(debug=True, host="127.0.0.1", port=5000)
+    else:
+        ssl_context = ("/etc/letsencrypt/live/st17.fyi/fullchain.pem", "/etc/letsencrypt/live/st17.fyi/privkey.pem")
+        app.run(debug=False, host="0.0.0.0", port=443, ssl_context=ssl_context)
