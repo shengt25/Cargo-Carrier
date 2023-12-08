@@ -86,9 +86,24 @@ function initMap() {
     return [map, airportMarkerGroup];
 }
 
+function addMarker(iconType, airportMarkerGroup, airportData, isDisabled) {
+    const airportMarker = L.marker(
+        [airportData.latitude_deg, airportData.longitude_deg],
+        { icon: iconType },
+    ).addTo(airportMarkerGroup);
+    airportMarker.bindPopup(
+        `<h2>${airportData.country_name}</h2><p>${airportData.name} <b>(${airportData.ident})</b></p>`,
+    );
+    airportMarker.on("click", () => {
+        console.log(airportData);
+        document.getElementById("btn-fly").disabled = isDisabled;
+        updateFlyProtocol(airportData);
+        selectedAirport = airportData;
+    });
+}
+
 async function updateMap(gameID, map, airportMarkerGroup) {
     console.log("updating map");
-
     const airportsResponse = await getData(`/game/${gameID}/get-airports-data`);
     const airportsData = airportsResponse.airports;
 
@@ -113,49 +128,12 @@ async function updateMap(gameID, map, airportMarkerGroup) {
         const airportData = airportsData[ident];
         const reachFuel = airportData.reach_fuel;
         const reachTime = airportData.reach_time;
-
         if (airportData.current === true) {
-            const airportMarker = L.marker(
-                [airportData.latitude_deg, airportData.longitude_deg],
-                { icon: redIcon },
-            ).addTo(airportMarkerGroup);
-            airportMarker.bindPopup(
-                `<h2>${airportData.country_name}</h2><p>${airportData.name} <b>(${airportData.ident})</b></p>`,
-            );
-            airportMarker.on("click", () => {
-                console.log(airportData);
-                document.getElementById("btn-fly").disabled = true;
-                updateFlyProtocol(airportData);
-                selectedAirport = airportData;
-            });
+            addMarker(redIcon, airportMarkerGroup, airportData, true);
         } else if (reachFuel === false || reachTime === false) {
-            const airportMarker = L.marker(
-                [airportData.latitude_deg, airportData.longitude_deg],
-                { icon: redIcon },
-            ).addTo(airportMarkerGroup);
-            airportMarker.bindPopup(
-                `<h2>${airportData.country_name}</h2><p>${airportData.name} <b>(${airportData.ident})</b></p>`,
-            );
-            airportMarker.on("click", () => {
-                console.log(airportData);
-                document.getElementById("btn-fly").disabled = true;
-                updateFlyProtocol(airportData);
-                selectedAirport = airportData;
-            });
+            addMarker(redIcon, airportMarkerGroup, airportData, true);
         } else {
-            const airportMarker = L.marker(
-                [airportData.latitude_deg, airportData.longitude_deg],
-                { icon: greenIcon },
-            ).addTo(airportMarkerGroup);
-            airportMarker.bindPopup(
-                `<h2>${airportData.country_name}</h2><p>${airportData.name} <b>(${airportData.ident})</b></p>`,
-            );
-            airportMarker.on("click", () => {
-                console.log(airportData);
-                document.getElementById("btn-fly").disabled = false;
-                updateFlyProtocol(airportData);
-                selectedAirport = airportData;
-            });
+            addMarker(greenIcon, airportMarkerGroup, airportData, false);
         }
     });
     map.fitBounds(airportMarkerGroup.getBounds());
@@ -170,6 +148,7 @@ async function updateMap(gameID, map, airportMarkerGroup) {
     const btnHire = document.getElementById("dice-option");
     const btnMyself = document.getElementById("unload-option");
     const btnFly = document.getElementById("btn-fly");
+
     btnMyself.addEventListener("click", async () => {
         try {
             const jsonData = { option: 1 };
@@ -181,6 +160,7 @@ async function updateMap(gameID, map, airportMarkerGroup) {
             console.error(error);
         }
     });
+
     btnHire.addEventListener("click", async () => {
         try {
             const jsonData = { option: 0 };
@@ -192,17 +172,19 @@ async function updateMap(gameID, map, airportMarkerGroup) {
             console.error(error);
         }
     });
-    btnFly.addEventListener("click", async () => {
-        try {
-            const jsonData = { ident: selectedAirport.ident };
-            await postData(`/game/${gameID}/fly`, jsonData);
-            console.log("try to update map");
 
-            updateMap(gameID, map, airportMarkerGroup);
-            updatePlayerStatus(gameID);
-            showOptionsModal();
-        } catch (error) {
-            console.error(error);
+    btnFly.addEventListener("click", async () => {
+        if (selectedAirport) {
+            try {
+                const jsonData = { ident: selectedAirport.ident };
+                await postData(`/game/${gameID}/fly`, jsonData);
+                updateMap(gameID, map, airportMarkerGroup);
+                updatePlayerStatus(gameID);
+                showOptionsModal();
+            } catch (error) {
+                console.error(error);
+            }
+            selectedAirport = null;
         }
     });
 })();

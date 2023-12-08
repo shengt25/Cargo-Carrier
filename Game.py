@@ -19,4 +19,8 @@ class Game:
                            emission_per_km=plane_param["emission_per_km"],
                            reward_per_km=plane_param["reward_per_km"],
                            hire_cost=plane_param["hire_cost"],
-                           fuel_price=shop_param["fuel"]["price"],)
+                           fuel_price=shop_param["fuel"]["price"], )
+
+    def calculate_score(self):
+        score = self.player.money * 1 - self.player.emission * 1 + self.player.fuel * 1 + self.player.time * 0.01
+        return score

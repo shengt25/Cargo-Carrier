@@ -97,21 +97,34 @@ class Plane:
     def get_all_airports(self):
         return self.airports
 
-    def check_money_time_ending(self):
+    def check_money_ending(self):
         can_go_somewhere = 0
         money = self.player.money
         fuel_buy = money / self.fuel_price
-        fuel = self.player.fuel
-        time = self.player.time
+        fuel_left = self.player.fuel
+        fuel = fuel_left + fuel_buy
         for ident in self.airports:
-            fuel_consumption = self.calculate_fuel_consumption(ident)
-            time_consumption = self.calculate_time_consumption(ident)
-            if fuel_consumption <= fuel and time_consumption <= time:
-                can_go_somewhere += 1
+            if ident != self.player.location:
+                fuel_consumption = self.calculate_fuel_consumption(ident)
+                if fuel_consumption <= fuel:
+                    can_go_somewhere += 1
         if can_go_somewhere == 0:
-            return True, f"[ok] check-ending With all money {money} you can have {fuel} + {fuel_buy} fuel, you can't go anywhere, game over."
+            return True, f"[ok] check-ending With all money {money} you can have {fuel_left} + {fuel_buy} fuel, you can't go anywhere, game over."
         else:
-            return False, f"[ok] check-ending With all money {money} you can have {fuel} + {fuel_buy} fuel, game continues."
+            return False, f"[ok] check-ending With all money {money} you can have {fuel_left} + {fuel_buy} fuel, game continues."
+
+    def check_time_ending(self):
+        can_go_somewhere = 0
+        time_left = self.player.time
+        for ident in self.airports:
+            if ident != self.player.location:
+                time_consumption = self.calculate_time_consumption(ident)
+                if time_consumption <= time_left:
+                    can_go_somewhere += 1
+        if can_go_somewhere == 0:
+            return True, f"[ok] check-ending With all {time_left} you can't go anywhere, game over."
+        else:
+            return False, f"[ok] check-ending With all {time_left}, game continues."
 
     def fly(self, ident):
         if self.has_cargo:

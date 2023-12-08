@@ -206,17 +206,25 @@ def check_ending(game_id):
         print_log(game_id, message)
         response = {"success": False,
                     "message": message}
-    else:
-        money_time_ending, message = game_list[game_id].plane.check_money_time_ending()
-        print_log(game_id, message)
-        if money_time_ending:
-            response = {"end": True,
-                        "type": "lose",
-                        "message": message}
-        else:
-            response = {"end": False,
-                        "message": message}
-    return response
+        return response
+
+    time_ending, message = game_list[game_id].plane.check_time_ending()
+    money_ending, message = game_list[game_id].plane.check_money_ending()
+    print_log(game_id, message)
+    # check time ending first because it ends the game immediately
+    if time_ending:
+        response = {"end": True,
+                    "type": "lose",
+                    "score": game_list[game_id].calculate_score(),
+                    "message": message}
+        return response
+    if money_ending:
+        response = {"end": True,
+                    "type": "lose",
+                    "score": game_list[game_id].calculate_score(),
+                    "message": message}
+        return response
+    return {"end": False, "score": game_list[game_id].calculate_score(), "message": message}
 
 
 if __name__ == "__main__":
