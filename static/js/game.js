@@ -49,6 +49,10 @@ const postData = async (url, json) => {
             // body: JSON.stringify(data)  // convert JavaScript object to JSON string
             body: json,
         });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
         return await response.json();
     } catch (error) {
         console.error("Error:", error);
@@ -98,6 +102,7 @@ const updatePlayerStatus = async (pstatus) => {
     `
 };
 
+// unload modal
 const showOptionsModal = () => {
     const modal = document.getElementById('options-modal');
     if (modal) {
@@ -112,22 +117,44 @@ const hideOptionsModal = () => {
     }
 };
 
+// function check game finish
+const isGameFinish = (pstatus) => {
+    return pstatus.player.finish === 1 ? true : false
+}
+
+
+
 // main function to set up the game
 const gameSetup = async (gameId) => {
     try {
+        // function exit the game
+        const exitIcon = document.querySelector('#exit');
+        if (exitIcon) {
+            exitIcon.addEventListener('click', function() {
+                const userConfirmed = confirm('Do you want to exit the game?');
+                if (userConfirmed) {
+                    console.log('Exiting the game...');
+                } else {
+                    console.log('User canceled game exit.');
+                }
+            });
+        } else {
+            console.error('Exit button not found.');
+        }
+
+
         const flyButton = document.querySelector('.fly')
-        console.log(flyButton)
+        // console.log(flyButton)
 
 
         airportMarkers.clearLayers();
-        const status = await getData(`http://127.0.0.1:5000/game/${gameId}/get-player-data`);
+        const status = await getData(`/game/${gameId}/get-player-data`);
         updatePlayerStatus(status)
 
 
-        const airportsData = await getData(`http://127.0.0.1:5000/game/${gameId}/get-airports-data`);
+        const airportsData = await getData(`/game/${gameId}/get-airports-data`);
         const airports = airportsData.airports;
         let selectedAirport;
-
 
         for (const airportCode in airports) {
             if (airports.hasOwnProperty(airportCode)) {
@@ -135,7 +162,6 @@ const gameSetup = async (gameId) => {
                 const name = airport.name;
                 const latitude = airport.latitude_deg;
                 const longitude = airport.longitude_deg;
-
 
                 let marker;
                 if (airportCode === status.player.location) {
@@ -151,27 +177,30 @@ const gameSetup = async (gameId) => {
 
                 // Attach a click event to each marker
                 marker.on("click", () => {
-                    console.log(`Clicked on ${name}`);
-                    console.log(airportCode)
-                    selectedAirport = airport
+                    selectedAirport = airport;
                     updateFlyProtocol(airport);
+
+                    // Check if the Fly button should be enabled
+                    if (status.player.location === selectedAirport.ident) {
+                        flyButton.disabled = true; // Disable the button
+                        console.log('Player is already at the current airport. Fly button disabled.');
+                    } else {
+                        // Enable the button and attach the click event listener
+                        flyButton.disabled = false;
+                        flyButton.addEventListener('click', async function () {
+                            try {
+                                const jsonData = `{"ident": "${selectedAirport.ident}"}`;
+                                await postData(`/game/${gameId}/fly`, jsonData);
+                                gameSetup(gameId)
+                                showOptionsModal();
+                            } catch (error) {
+                                console.error(error);
+                            }
+                        });
+                    }
                 });
             }
         }
-        // send post data when fly button is clicked
-
-        flyButton.addEventListener('click', async function() {
-            try {
-                const jsonData = `{"ident": "${selectedAirport.ident}"}`;
-                await postData(`http://127.0.0.1:5000/game/${gameId}/fly`, jsonData);
-                const updatedStatus = await getData(`http://127.0.0.1:5000/game/${gameId}/get-player-data`);
-                updatePlayerStatus(updatedStatus);
-                showOptionsModal();
-            } catch (error) {
-                console.error(error);
-            }
-        });
-        
 
         // Add event listeners for modal options (dice and unload)
         const diceOption = document.getElementById('dice-option');
@@ -181,7 +210,7 @@ const gameSetup = async (gameId) => {
             console.log('Dice option clicked');
             // try {
             //     const jsonData = {"option": "0"};
-            //     await postData(`http://127.0.0.1:5000/game/${gameId}/unload`, jsonData);
+            //     await postData(`/game/${gameId}/unload`, jsonData);
             //     const updatedStatus = await getData(`/game/${gameId}/get-player-data`);
             //     console.log(updatedStatus)
             //     updatePlayerStatus(updatedStatus);
@@ -193,22 +222,29 @@ const gameSetup = async (gameId) => {
 
         unloadOption.addEventListener('click', async () => {
             console.log('Unload option clicked');
-            // try {
-            //     const jsonData = {"option": "1"};
-            //     await postData(`http://127.0.0.1:5000/game/${gameId}/unload`, jsonData);
-            //     const updatedStatus = await getData(`http://127.0.0.1:5000/game/${gameId}/get-player-data`);
-            //     console.log(updatedStatus)
-            //     updatePlayerStatus(updatedStatus);
-            //     hideOptionsModal();
-            // } catch (error) {
-            //     console.error(error);
-            // }
-            // Hide the modal
-            hideOptionsModal();
+            try {
+                const jsonData = { "option": "0" };
+                await postData(`/game/${gameId}/unload`, jsonData);
+        
+                // Update player status after unloading
+                // const updatedStatus = await getData(`/game/${gameId}/get-player-data`);
+                // updatePlayerStatus(updatedStatus);
+        
+                // Check if the game is finished
+                if (isGameFinish(updatedStatus)) {
+                    // Display congratulations message or perform any other game-end logic
+                    alert("Congratulations! The game has ended.");
+                } else {
+                    // Continue the game setup
+                    gameSetup(gameId);
+                }
+                // Hide the options modal
+                hideOptionsModal();
+            } catch (error) {
+                console.error(error);
+            }
         });
-
-
-
+        
 
 
     } catch (error) {
