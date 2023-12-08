@@ -1,7 +1,8 @@
 // global variables
 let currentAirportMarker;
+let selectedAirport;
 
-
+tehshdslgsdlfs
 // current airport
 const greenIcon = L.icon({
     iconUrl:
@@ -66,6 +67,8 @@ const getGameIdFromUrl = () => {
     return pathParts[pathParts.length - 1];
 };
 
+const gameId = getGameIdFromUrl();
+
 
 // function update player status
 const updatePlayerStatus = async (pstatus) => {
@@ -122,6 +125,20 @@ const isGameFinish = (pstatus) => {
     return pstatus.player.finish === 1 ? true : false
 }
 
+// fly button
+const flyButton = document.querySelector('.fly')
+
+flyButton.addEventListener('click', async function () {
+    try {
+        const jsonData = `{"ident": "${selectedAirport.ident}"}`;
+        await postData(`/game/${gameId}/fly`, jsonData);
+        gameSetup(gameId)
+        showOptionsModal();
+    } catch (error) {
+        console.error(error);
+    }
+});
+
 
 
 // main function to set up the game
@@ -143,7 +160,6 @@ const gameSetup = async (gameId) => {
         }
 
 
-        const flyButton = document.querySelector('.fly')
         // console.log(flyButton)
 
 
@@ -154,7 +170,6 @@ const gameSetup = async (gameId) => {
 
         const airportsData = await getData(`/game/${gameId}/get-airports-data`);
         const airports = airportsData.airports;
-        let selectedAirport;
 
         for (const airportCode in airports) {
             if (airports.hasOwnProperty(airportCode)) {
@@ -187,16 +202,7 @@ const gameSetup = async (gameId) => {
                     } else {
                         // Enable the button and attach the click event listener
                         flyButton.disabled = false;
-                        flyButton.addEventListener('click', async function () {
-                            try {
-                                const jsonData = `{"ident": "${selectedAirport.ident}"}`;
-                                await postData(`/game/${gameId}/fly`, jsonData);
-                                gameSetup(gameId)
-                                showOptionsModal();
-                            } catch (error) {
-                                console.error(error);
-                            }
-                        });
+                        
                     }
                 });
             }
@@ -254,6 +260,5 @@ const gameSetup = async (gameId) => {
 };
 
 (() => {
-    const gameID = getGameIdFromUrl();
-    gameSetup(gameID);
+    gameSetup(gameId);
 })();
