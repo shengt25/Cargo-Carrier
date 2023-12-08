@@ -1,0 +1,161 @@
+body{
+  background-color: whitesmoke;
+}
+#container {
+  width: 1080px;
+  background-image: url("plane_console2.png");
+  text-align: center;
+  border: 3px black solid;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+#upl{
+  display: flex;
+  list-style-type: none;
+  justify-content: space-evenly;
+  text-align: center;
+  font-family: Arial;
+  font-size: 1.03rem;
+}
+#imgpower{
+  width: 45px;
+  height: 45px;
+}
+#power{background-color: whitesmoke;
+  border-radius: 40px;
+  align-content: center;
+}
+#power:active{
+  transform: scale(0.9);
+}
+nav{
+  display: block;
+margin-left: auto;
+margin-right: auto;
+width: 50%;
+  padding-left: 50px;
+}
+#bmap{
+  background-color: transparent;
+  height: 52px;
+  width: 50px;
+  font-size: 2rem;
+  padding-right: 30px;
+  border-color: transparent;
+}
+#bshop{
+  padding-right: 177px;
+  height: 52px;
+  width: 50px;
+  font-size: 2rem;
+  background-color: transparent;
+  border-color: transparent;
+}
+
+#amap{
+  text-decoration: none;
+  color: white;
+}
+#ashop{
+  text-decoration: none;
+  color: white;
+}
+.google-map iframe{
+  width: 1080px;
+  height: 468px;
+}
+.google-map{
+  border: 3px black solid;
+  border-radius: 1px;
+  width: 1080px;
+  height: 468px;
+}
+#mapandset{
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 10px;
+
+}
+#flight #main{
+  font-family: Arial;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.41rem;
+  padding-top: 1px;
+  padding-right: 10px;
+}
+#flightset{
+  padding-right: 100px;
+}
+#flight{
+  border: 3px black solid;
+  border-radius: 1px;
+  width: 215px;
+  height: 431px;
+  font-family: Chiller;
+  font-size: 1.85rem;
+  background-image: url("Paper New5.png");
+}
+#flight p{
+  padding-left: 9px;
+}
+#player{
+  border: 3px grey solid;
+  border-radius: 1px;
+  width: 1380px;
+  height: 50px;
+  font-family: '8BIT WONDER', sans-serif;
+  background-color: black;
+  text-align: center;
+  display: flex;
+  justify-content: space-evenly;
+  list-style-type: none;
+  margin: auto;
+}
+#info{
+  padding-top: 10px;
+  justify-content: space-evenly;
+  display: flex;
+  text-align: center;
+  margin: auto;
+  padding-bottom: 30px;
+}
+#status{
+  color: green;
+  padding-top: 15px;
+  padding-left: 10px;
+   display: flex;
+  text-align: center;
+  margin: auto;
+}
+#computer{
+  padding-left: 100px;
+  text-align: center;
+}
+#radar{
+  height: 180px;
+  width: 320px;
+}
+#radtext{
+  width: 314px;
+}
+#fly{
+  background-color: green;
+}
+
+.nav_and_radar {
+  display: grid;
+  grid-template-columns: min-content 1fr;
+  grid-template-rows: min-content min-content;
+}
+.radar {
+  grid-column: 2/3;
+  grid-row: 1/3;
+}
+#visit{
+  padding-top: 49px;
+}
+#rad{
+  font-family: Arial;
+  border: 3px black solid;
+}

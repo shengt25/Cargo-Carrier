@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link href="CSS.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.cdnfonts.com/css/8bit-wonder');
+    </style>
+</head>
+<body>
+<div id="info">
+    <div>
+        <button id="power">
+            <img id="imgpower" src="power-button-icon-31.png">
+        </button>
+    </div>
+    <div class="container" id="player">
+        <p id="status">Money:</p>
+        <p id="status">Fuel:</p>
+        <p id="status">Emission:</p>
+        <p id="status">Time:</p>
+    </div>
+</div>
+<div class="nav_and_radar">
+    <div class="container" id="container">
+    <nav>
+    <ul id="upl">
+        <button id="bmap"><a id="amap" class="center">Map</a></button>
+        <button id="bshop"><a id="ashop" class="center" onclick="showShop()">Shop</a></button>
+    </ul>
+    </nav>
+    </div>
+    <div id="compandset" class="radar">
+      <div id="computer">
+              <p id="rad">On-Board computer</p>
+              <img id="radar" src="Radar1.gif">
+          </div>
+      <div class="container" id="flightset">
+          <nav>
+          <article id="flight">
+              <p id="main">Flight Protocol</p>
+              <p>Airport name:</p>
+              <p>Fuel:</p>
+              <p>Money:</p>
+              <p>CO2:</p>
+              <p id="visit">Visited:</p>
+              <p id="org"></p>
+          </article>
+              <button id="fly">Take off</button>
+          </nav>
+      </div>
+    </div>
+    <div class="container" id="mapandset">
+    <div class="google-map" >
+      <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3951.3724273241273!2d24.94708504373451!3d60.318247692219!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x468df8658f62a2b1%3A0xfbf0d9012c28b396!2sHelsinki%20Airport!5e0!3m2!1sen!2sfi!4v1701643367232!5m2!1sen!2sfi" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    </div>
+    </div>
+</div>
+<script>
+    function showShop() {
+        const menu = document.getElementById("menu");
+        const shop = document.getElementById("shop");
+        const exit = document.getElementById("exit");
+
+        menu.innerHTML = '<a href="" class="center">Buy Coffee</a>';
+        shop.innerHTML = '<a href="" class="center">Buy Fuel</a>';
+        exit.innerHTML = '<a href="" class="center">Open Airport</a>';
+    }
+</script>
+</body>
+</html>
