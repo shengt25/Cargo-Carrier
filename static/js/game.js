@@ -1,5 +1,9 @@
 var selectedAirport;
 
+//------------------------------
+//  BASIC POST AND GET FUNCTIONS
+//------------------------------
+
 async function getData(url) {
     const response = await fetch(url);
     if (!response.ok) throw new Error("Invalid server input");
@@ -29,6 +33,10 @@ function getGameIDFromUrl() {
     const pathParts = window.location.pathname.split("/");
     return pathParts[pathParts.length - 1];
 }
+
+//------------------------------
+//  UPDATE STATUS FUNCTIONS
+//------------------------------
 
 const updatePlayerStatus = async (gameID) => {
     const playerResponse = await getData(`/game/${gameID}/get-player-data`);
@@ -75,6 +83,10 @@ function isGameFinish(playerData) {
     return playerData.finish === 1;
 }
 
+//------------------------------
+//  MAP FUNCTIONS
+//------------------------------
+
 function initMap() {
     const map = L.map("map", { tap: false });
     const airportMarkerGroup = L.featureGroup().addTo(map);
@@ -87,6 +99,9 @@ function initMap() {
 }
 
 function addMarker(iconType, airportMarkerGroup, airportData, isDisabled) {
+    // add marker to map
+    // add event listener to marker
+    // event listener will update fly protocol and fly button
     const airportMarker = L.marker(
         [airportData.latitude_deg, airportData.longitude_deg],
         { icon: iconType },
@@ -103,6 +118,10 @@ function addMarker(iconType, airportMarkerGroup, airportData, isDisabled) {
 }
 
 async function updateMap(gameID, map, airportMarkerGroup) {
+    // get new airports data from server
+    // clear layers
+    // new markers with different colors
+    // add event listeners to each marker
     console.log("updating map");
     const airportsResponse = await getData(`/game/${gameID}/get-airports-data`);
     const airportsData = airportsResponse.airports;
@@ -139,12 +158,28 @@ async function updateMap(gameID, map, airportMarkerGroup) {
     map.fitBounds(airportMarkerGroup.getBounds());
 }
 
+//------------------------------
+//  SHOP FUNCTIONS
+//------------------------------
+
+//------------------------------
+//   HALL FUNCTIONS
+//------------------------------
+
 (() => {
+    //------------------------------
+    //   INIT GAME
+    //------------------------------
     const gameID = getGameIDFromUrl();
     const [map, airportMarkerGroup] = initMap();
     updateMap(gameID, map, airportMarkerGroup);
     updatePlayerStatus(gameID);
 
+    //------------------------------
+    //   ADD EVENT LISTENERS
+    //------------------------------
+
+    // Hire, Myself, Fly buttons
     const btnHire = document.getElementById("dice-option");
     const btnMyself = document.getElementById("unload-option");
     const btnFly = document.getElementById("btn-fly");

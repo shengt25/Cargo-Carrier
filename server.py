@@ -4,6 +4,7 @@ import time
 from Game import Game
 from datetime import datetime
 from flask_cors import CORS
+from utils import Database
 
 local = True
 
@@ -19,11 +20,11 @@ database_param = {"host": "127.0.0.1",
 
 shop_param = {"fuel": {"price": 100, "description": "Fuel"},
               "coffee": {"price": 1, "description": "Coffee"},
-              "airport": {"price": 1000, "description": "Airport"}}
+              "airport": {"price": 20000, "description": "Airport"}}
 
 player_param = {"money": 1000,
-                "fuel": 100000,
-                "time": 800000}
+                "fuel": 1000,
+                "time": 8000}
 
 plane_param = {"fuel_per_km": 1,
                "speed_per_h": 800,
@@ -227,7 +228,16 @@ def check_ending(game_id):
     return {"end": False, "score": game_list[game_id].calculate_score(), "message": message}
 
 
+@app.route("/get-highscore")
+def get_highscore():
+    sql_query = "SELECT screen_name, money, fuel, emission, time, score FROM game ORDER BY score DESC LIMIT 10"
+    high_score = master_database.query(sql_query)
+    return high_score
+
+
 if __name__ == "__main__":
+    master_database = Database(database_param)
+
     if local:
         app.run(debug=True, host="127.0.0.1", port=5000)
     else:

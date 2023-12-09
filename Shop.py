@@ -39,16 +39,26 @@ class Shop:
         return response
 
     def buy_airport(self):
+
+        if self.player.location != self.player.home:
+            message = "[fail] buy: airport how do you buy airport when you are not at home?"
+            response = {"success": False,
+                        "reason": "hack",
+                        "message": message}
+            return response
+
         expense = self.items["airport"]["price"]
         if self.player.money >= expense:
             self.player.update_value(money_change=-expense)
-            message = "[ok] buy: fuel"
+            message = "[ok] buy: airport"
             response = {"success": True,
                         "player": self.player.get_all_data(),
                         "message": message}
+            self.player.update_state(finish=1)
         else:
-            message = "[fail] buy: fuel"
+            message = "[fail] buy: airport"
             response = {"success": False,
                         "reason": "money",
                         "message": message}
         return response
+

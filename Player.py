@@ -48,7 +48,8 @@ class Player:
 
     def get_all_data(self):
         response = {"name": self.name, "money": self.money, "fuel": self.fuel, "emission": self.emission,
-                    "time": self.time, "location": self.location, "finish": self.finish, "score": self.score}
+                    "time": self.time, "location": self.location, "finish": self.finish, "score": self.score,
+                    "home": self.home}
         return response
 
     def update_all_data_from_database(self):

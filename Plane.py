@@ -133,6 +133,12 @@ class Plane:
                         "message": "Unload first, hacker!"}
             return response
 
+        if ident == self.player.location:
+            response = {"success": False,
+                        "reason": "airport",
+                        "message": "You are already here, hacker!"}
+            return response
+
         if ident not in self.airports.keys():
             response = {"success": False,
                         "reason": "airport",

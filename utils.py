@@ -12,12 +12,14 @@ class Database:
             autocommit=True)
 
     def query(self, query, parameter=None):
-        # convert parameter to tuple if it is not
-        if not isinstance(parameter, tuple):
-            parameter = (parameter,)
-
         cursor = self.connection.cursor(dictionary=True)
-        cursor.execute(query, parameter)
+        if parameter is None:
+            cursor.execute(query)
+        else:
+            # convert parameter to tuple if it is not
+            if not isinstance(parameter, tuple):
+                parameter = (parameter,)
+            cursor.execute(query, parameter)
         response = cursor.fetchall()
         return response
 
