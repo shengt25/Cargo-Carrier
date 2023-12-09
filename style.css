@@ -1,0 +1,312 @@
+@import url('https://fonts.cdnfonts.com/css/8bit-wonder');
+
+@font-face {
+    font-family: 'Caveat';
+    src: url('/Caveat-Regular.ttf') format('woff2')
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    /*background-color: #808080;*/
+    background-image: url("/img/bg.jpg");
+    background-size: cover;
+    /*height: 100%;*/
+    height: 1000px;
+
+}
+
+#page-container {
+    /*overflow: hidden;*/
+}
+
+#page {
+    display: flex;
+    width: 100%;
+    height: 800px;
+    /*background-color: red;*/
+    max-width: 1800px;
+}
+
+#main-section-left {
+    display: flex;
+    flex-wrap: wrap;
+    flex-grow: 1;
+    height: 100%;
+    /*background-color: blue;*/
+    min-width: 800px;
+}
+
+#main-section-left #top-bar {
+    display: flex;
+    width: 100%;
+    height: 80px;
+    /*background-color: yellow;*/
+}
+
+#main-section-left #top-bar #shutdown {
+    transition: box-shadow 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 80px;
+    height: 80px;
+    background-color: #181818;
+    border: 2px grey solid;
+    border-radius: 2px;
+    box-shadow: #590000 0 0 20px 1px inset;
+}
+
+#main-section-left #top-bar #shutdown:hover {
+    background-color: #2d2d2d;
+    box-shadow: red 0 0 20px 5px inset;
+}
+
+#main-section-left #top-bar #shutdown:active {
+    background-color: #2d2d2d;
+    box-shadow: #590000 0 0 20px 5px inset;
+}
+
+#power-btn {
+    width: 60%;
+    height: 60%;
+}
+
+#main-section-left #top-bar #status {
+    color: green;
+    justify-content: space-evenly;
+    align-items: center;
+    border: 2px grey solid;
+    border-radius: 2px;
+    display: flex;
+    flex-grow: 1;
+    height: 100%;
+    background-color: #2d2d2d;
+    box-shadow: #000000 0 0 20px 1px inset;
+
+}
+
+#main-section-left #top-bar #status .status-text {
+    font-family: '8BIT WONDER', sans-serif;
+    font-size: 18px;
+}
+
+
+#main-section-left #panel {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    height: calc(800px - 80px);
+
+}
+
+#main-section-left #panel #panel-top {
+    background-image: url("img/plane-panel-top.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    height: 120px;
+    background-color: #ff0000;
+    overflow: hidden;
+    box-shadow: #000000 0 0 40px 1px inset;
+    border: 2px grey solid;
+}
+
+
+#panel-btn-container {
+    position: absolute;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    /*left: 30%;*/
+    width: 40%;
+    bottom: 0;
+    height: 60px;
+    z-index: 2;
+    /*background-color: #ff0000;*/
+}
+
+.btn {
+    width: 80px;
+    height: 40px;
+    font-size: 1.2em;
+    color: rgb(84, 39, 11);
+    background-color: #bdb3ae;
+    font-family: "Montserrat", sans-serif;
+    text-transform: uppercase;
+    text-decoration: none;
+    margin: 1rem;
+    padding: 0.5rem;
+    border: 2px solid rgb(102, 66, 42);
+    border-radius: 0.2rem;
+    position: relative;
+    transition: all 100ms ease-in-out;
+    box-shadow: 0 0.6em #756b60, 0 0.9em rgba(0, 0, 0, 0.4);
+    transform: rotateX(40deg);
+}
+
+.btn:hover {
+    top: -0.2rem;
+    color: rgb(84, 39, 11);
+    background-color: #d3c8c4;
+    box-shadow: 0 0.6em #8f8376, 0 1.3em rgba(0, 0, 0, 0.4);
+}
+
+.btn:active {
+    top: 0.2rem;
+    color: rgb(26, 12, 3);
+    background-color: #8d8a8a;
+    box-shadow: 0 0.2em #260a0a, 0 0.5em rgba(0, 0, 0, 0.4);
+}
+
+
+#main-section-left #panel #panel-display {
+    display: block;
+    flex-grow: 1;
+    width: 100%;
+    /*height: calc(800px - 80px - 80px);*/
+    height: calc(800px - 80px - 120px);
+    background-color: #000000;
+    box-shadow: #000000 0 0 10px 1px inset;
+    border: 2px grey solid;
+}
+
+#map, #shop, #hall {
+    width: 100%;
+    height: calc(800px - 80px - 120px);
+}
+
+#map {
+    display: block;
+}
+
+#shop {
+    display: none;
+    background-image: url("/img/shop_bg.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: filter 0.3s ease;
+}
+
+#hall {
+    display: none;
+    background-image: url("/img/hall_bg.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: filter 0.3s ease;
+}
+
+
+#main-section-divider {
+    display: block;
+    width: 20px;
+    height: 100%;
+    /*background-color: #00ff9d;*/
+}
+
+#main-section-right {
+    display: flex;
+    flex-wrap: wrap;
+    width: 300px;
+    height: 100%;
+    min-width: 250px;
+    /*background-color: green;*/
+}
+
+#main-section-right #monitor {
+    display: flex;
+    width: 100%;
+    background-image: url("img/Radar1.gif");
+    background-size: cover;
+    background-position: center;
+    /*height: calc(300px * 9 / 16);*/
+    height: 200px;
+    box-shadow: #000000 0 0 30px 15px inset;
+    border: 2px grey solid;
+    /*background-color: #72726f;*/
+}
+
+#main-section-right #monitor-flight-divider {
+    display: block;
+    width: 100%;
+    height: 30px;
+    /*background-color: cornflowerblue;*/
+}
+
+#main-section-right #flight {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    background-color: rgb(254, 229, 172);
+    flex-grow: 1;
+    width: 100%;
+    height: calc(800px - 200px - 30px);
+    box-shadow: #000000 0 0 5px 1px inset;
+    border: 2px grey solid;
+    /*background-color: blueviolet;*/
+}
+
+#flight-text-container {
+    width: 85%;
+    /*background-color: #000000;*/
+}
+
+#flight-text-container p, h2, h3 {
+    font-family: "Caveat", sans-serif;
+    font-size: 2em;
+    /*text-decoration: underline;*/
+    z-index: 2;
+}
+
+#fly-btn-container {
+    position: absolute;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    /*left: 30%;*/
+    width: 100%;
+    bottom: 0;
+    height: 80px;
+    z-index: 2;
+    /*background-color: #000000;*/
+}
+
+#btn-fly {
+    width: 200px;
+    height: 50px;
+}
+
+#stamp {
+    display: none;
+    opacity: 0.7;
+    position: absolute;
+    right: 2%;
+    bottom: 10%;
+    width: 200px;
+    height: 200px;
+    background-image: url("/img/stamp.png");
+    background-size: cover;
+    transition: filter 0.3s ease;
+    z-index: 3;
+    animation-name: stamp;
+    animation-duration: 0.3s;
+}
+
+@keyframes stamp {
+    0% {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    100% {
+        opacity: 0.7;
+        transform: translateY(0);
+    }
+}
