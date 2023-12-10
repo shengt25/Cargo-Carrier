@@ -88,18 +88,3 @@ def second_to_dhm(seconds: int) -> tuple[int, int, int]:
     minute = int(seconds / 60 - hour * 60 - day * 24 * 60)
     return day, hour, minute
 
-
-def get_highest_score(database):
-    sql_query = "SELECT max(score) FROM game"
-    high_score = database.query(sql_query)
-    return high_score[0]["max(score)"]
-
-
-def calculate_score(player_state, score_param):
-    score_money = round(score_param["money"] * player_state["money"])
-    score_emission = round(score_param["emission"] * player_state["emission"])
-    score_time = round(score_param["time"] * player_state["time"])
-    score = score_money + score_time - score_emission
-    player_state["score"] = score
-    score_dict = {"money": score_money, "time": score_time, "emission": score_emission}
-    return score_dict, score

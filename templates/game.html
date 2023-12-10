@@ -2,75 +2,142 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="/static/css/style.css">
+    <title>Title</title>
+    <link rel="stylesheet" href="/static/css/game.css">
 
-    <title>Fly Game</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-          crossorigin=""/>
+          crossorigin="">
     <!-- Make sure you put this AFTER Leaflet's CSS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
             crossorigin=""></script>
+
 </head>
 <body>
-    <main>
-        <div class="wrapper">
-            <div class="map-status">
-                <div class="status">
-                    <img src="https://img.icons8.com/ios/50/logout-rounded-left.png" alt="logout-rounded-left">
-                    <table>
-                        <tr>
-                            <td colspan="2">
-                                <h3 id="player-name">Player Name</h3>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Time Left: <span id="time-left">24</span>h</td>
-                            <td>Money: <span id="money">999</span>kg</td>
-                            <td>Fuel: <span id="fuel">0</span>kg</td>
-                            <td>CO2 Emission: <span id="co2-emission">0</span>kg</td>
-                            <td>Current location: <span id="location">ELHK</span></td>
-                            <!-- <td> Treasure Detector: <span id="treasure">0.05</span>%</td> -->
-                        </tr>
-                    </table>
-                </div>
-                <div class="shop-map">
-                    <button id="shop" class="btn">Shop</button>
-                    <button class="btn">Map</button>
-                </div>
-                <div id="map" style="height: 500px; width: 100%;"></div>
+
+<div id="page">
+    <div id="main-section-left">
+        <div id="top-bar">
+            <div id="shutdown">
+                <img src="/static/img/power-button-icon.png" alt="" id="power-btn">
             </div>
-            <div class="right">
-                <div id="video-dice">
-                    <h2>Video/dice</h2>
+            <div id="status">
+                <div class="status-text-container">
+                    <p>Name</p>
+                    <p id="status-name"></p>
                 </div>
-                <div id="flight-protocol">
-                    <h2>Fly Protocol</h2>
-                    <!-- <p id="name">Airport name: </p>
-                    <p>Fuel: </p>
-                    <p>Money: </p>
-                    <p>Co2: </p> -->
+                <div class="status-text-container">
+                    <p>Money</p>
+                    <p id="status-money"></p>
                 </div>
-                <button class="btn fly" id="btn-fly">Fly</button>
+                <div class="status-text-container">
+                    <p>Fuel</p>
+                    <p id="status-fuel"></p>
+                </div>
+                <div class="status-text-container">
+                    <p>Emission</p>
+                    <p id="status-emission"></p>
+                </div>
+                <div class="status-text-container">
+                    <p>Time</p>
+                    <p id="status-time"></p>
+                </div>
             </div>
         </div>
-    </main>
+        <div id="panel">
+            <div id="panel-top">
+                <div id="panel-btn-container">
+                    <button id="btn-shop" class="btn">SHOP</button>
+                    <button id="btn-map" class="btn">MAP</button>
+                    <button id="btn-hall" class="btn">HALL</button>
+                </div>
+            </div>
+            <div id="panel-display">
+                <div id="map"></div>
+                <!-- shop and hall -->
+                <div id="shopDiv">
+                    <div id="shop-main-background"></div>
+                    <div id="shop-board-container">
+                        <img src="/static/img/board.png" id="shop-board-background" alt="">
+                        <div id="shop-item-container">
+                            <div id="shop-item-fuel">
+                                <label for="shop-item-fuel-input">Fuel: €2/ton</label>
+                                <input type="text" id="shop-item-fuel-input">
+                                <button id="shop-item-fuel-btn" class="btn2 ">BUY</button>
+                            </div>
+                            <div id="shop-item-coffee">
+                                <label for="shop-item-coffee-input">Coffee: €2/cup</label>
+                                <input type="text" id="shop-item-coffee-input">
+                                <button id="shop-item-coffee-btn" class="btn2 ">BUY</button>
+                            </div>
+                            <div id="shop-item-airport">
+                                <p>Open my airport €20 000</p>
+                                <button id="shop-item-airport-btn" class="btn2 ">BUY</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="shop-dialogue-bubble">
+                        <div id="shop-dialogue-background">
+                            <img src="/static/img/bubble.png" alt="">
+                        </div>
+                        <div id="shop-dialogue-text-container">
+                            <p id="shop-dialogue-text"></p>
+                        </div>
+                    </div>
+                </div>
+                <div id="hallDiv" >
+                    <div id="hall-main-background"></div>
+                    <div id="hall-board-container" >
+                        <img src="/static/img/board.png" id="hall-board-background"  alt="">
+                        <div id="hall-item-container" >
+                            <div id="hall-item-fuel" >
+                                <button id="hall-item-fuel-btn" class="btn2 hall-hide-show">Hire someone else (€600)
+                                </button>
+                            </div>
+                            <div id="hall-item-coffee" >
+                                <button id="hall-item-coffee-btn" class="btn2 hall-hide-show">Unload cargo myself
+                                    (Dice)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="hall-dialogue-bubble">
+                        <div id="hall-dialogue-background">
+                            <img src="/static/img/bubble.png" alt="">
+                        </div>
+                        <div id="hall-dialogue-text-container">
+                            <p id="hall-dialogue-text"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-    <!-- Modal for options -->
-    <dialog id="options-modal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="hideOptionsModal()">&times;</span>
-            <h2>Choose an option</h2>
-            <button id="dice-option" class="btn">Dice</button>
-            <button id="unload-option" class="btn">Unload</button>
         </div>
-    </dialog>
+    </div>
+    <div id="main-section-divider"></div>
+    <div id="main-section-right">
+        <div id="monitor"></div>
+        <div id="monitor-flight-divider"></div>
+        <div id="flight">
+            <div id="flight-text-container">
+                <!-- flight text here -->
+                <h2 id="flight-country-name">Germany</h2>
+                <h2 id="flight-airport-name">Stuttgart Airport</h2>
+                <p id="flight-fuel">Fuel: 200 ton</p>
+                <p id="flight-time">Time: 18 hours</p>
+                <p id="flight-emission">Emission: 200 ton</p>
+                <p id="flight-reward">Reward: $1234</p>
+            </div>
+            <div id="fly-btn-container">
+                <button id="btn-fly" class="btn2">FLY</button>
+            </div>
+            <div id="stamp"></div>
+        </div>
+    </div>
+</div>
 
 
-
-<script src="/static/js/game.js" defer></script>
-
+<script src="/static/js/game.js"></script>
 </body>
 </html>

@@ -54,7 +54,7 @@ class Shop:
             response = {"success": True,
                         "player": self.player.get_all_data(),
                         "message": message}
-            self.player.update_state(finish=1)
+            self.player.update_state(finish=True)
         else:
             message = "[fail] buy: airport"
             response = {"success": False,

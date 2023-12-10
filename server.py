@@ -22,9 +22,9 @@ shop_param = {"fuel": {"price": 100, "description": "Fuel"},
               "coffee": {"price": 1, "description": "Coffee"},
               "airport": {"price": 20000, "description": "Airport"}}
 
-player_param = {"money": 1000,
-                "fuel": 1000,
-                "time": 8000}
+player_param = {"money": 100000,
+                "fuel": 100000,
+                "time": 80000}
 
 plane_param = {"fuel_per_km": 1,
                "speed_per_h": 800,
@@ -212,27 +212,44 @@ def check_ending(game_id):
     time_ending, message = game_list[game_id].plane.check_time_ending()
     money_ending, message = game_list[game_id].plane.check_money_ending()
     print_log(game_id, message)
+    score = game_list[game_id].calculate_score()
+    sql_query = "UPDATE game SET score=%s WHERE game_id=%s"
+    parameter = (score, game_id)
+
     # check time ending first because it ends the game immediately
     if time_ending:
         response = {"end": True,
                     "type": "lose",
-                    "score": game_list[game_id].calculate_score(),
+                    "score": score,
                     "message": message}
+        game_list[game_id].database.query(sql_query, parameter)
         return response
     if money_ending:
         response = {"end": True,
                     "type": "lose",
-                    "score": game_list[game_id].calculate_score(),
+                    "score": score,
                     "message": message}
+        game_list[game_id].database.query(sql_query, parameter)
         return response
-    return {"end": False, "score": game_list[game_id].calculate_score(), "message": message}
+    return {"end": False, "score": score, "message": message}
 
 
 @app.route("/get-highscore")
 def get_highscore():
+    scores = []
+    high_score_ordered = {}
     sql_query = "SELECT screen_name, money, fuel, emission, time, score FROM game ORDER BY score DESC LIMIT 10"
-    high_score = master_database.query(sql_query)
-    return high_score
+    high_scores = master_database.query(sql_query)
+    for item in high_scores:
+        scores.append(item["score"])
+    scores.sort(reverse=True)
+
+    for score in scores:
+        for item in high_scores:
+            if item["score"] == score:
+                high_score_ordered[scores.index(score) + 1] = item
+                break
+    return high_score_ordered
 
 
 if __name__ == "__main__":

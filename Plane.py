@@ -1,6 +1,5 @@
 from geopy.distance import distance as geo_distance  # prevent shadow_name warning (distance is name of variable)
 import random
-import copy
 
 
 class Plane:
@@ -18,9 +17,9 @@ class Plane:
         self.hire_cost = hire_cost
 
         self.verbose = verbose
-        self.has_cargo = False
-        self.update_all_airports()
         self.fuel_price = fuel_price
+
+        self.update_all_airports()
 
     def calculate_distance(self, ident: str) -> float:
         coordinates1 = (self.airports[self.player.location]["latitude_deg"],
@@ -91,8 +90,9 @@ class Plane:
                     self.airports[ident]["range_time"] = False
             else:
                 self.airports[ident]["current"] = True
-        if can_go_somewhere == 0:
-            self.check_money_time_ending()
+        if can_go_somewhere == 0:  # todo what is this for?
+            self.check_money_ending()
+            self.check_time_ending()
 
     def get_all_airports(self):
         return self.airports
@@ -109,6 +109,7 @@ class Plane:
                 if fuel_consumption <= fuel:
                     can_go_somewhere += 1
         if can_go_somewhere == 0:
+            self.player.update_state(finish=True)
             return True, f"[ok] check-ending With all money {money} you can have {fuel_left} + {fuel_buy} fuel, you can't go anywhere, game over."
         else:
             return False, f"[ok] check-ending With all money {money} you can have {fuel_left} + {fuel_buy} fuel, game continues."
@@ -122,12 +123,13 @@ class Plane:
                 if time_consumption <= time_left:
                     can_go_somewhere += 1
         if can_go_somewhere == 0:
+            self.player.update_state(finish=True)
             return True, f"[ok] check-ending With all {time_left} you can't go anywhere, game over."
         else:
             return False, f"[ok] check-ending With all {time_left}, game continues."
 
     def fly(self, ident):
-        if self.has_cargo:
+        if self.player.has_cargo:
             response = {"success": False,
                         "reason": "hack",
                         "message": "Unload first, hacker!"}
@@ -166,8 +168,7 @@ class Plane:
                         "message": f"Not enough fuel and time, fuel needed: {fuel_consumption}. "
                                    f"You have {fuel} fuel."}
             return response
-
-        self.has_cargo = True
+        self.player.update_state(has_cargo=1)
 
         # calculate consumption
         fuel_consumption = self.airports[ident]["fuel"]
@@ -196,11 +197,11 @@ class Plane:
         return response
 
     def unload(self, option):
-        if not self.has_cargo:
+        if not self.player.has_cargo:
             response = {"success": False,
                         "message": "How do you unload without cargo, hacker?"}
         else:
-            self.has_cargo = False
+            self.player.has_cargo = False
             if option == 0 or option == "0":
                 self.player.update_value(money_change=-self.hire_cost)
                 response = {"success": True,
