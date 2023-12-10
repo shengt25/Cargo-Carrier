@@ -299,12 +299,17 @@ function addMarker(iconType, airportMarkerGroup, airportData, isDisabled) {
     // add event listener to marker
     // event listener will update fly protocol and fly button disabled status
     let airportMarker;
-    // todo update home airport marker
-    console.log("here" + globalData.playerData.home);
+    const homeIcon = L.icon({
+        iconUrl: "../static/img/marker-home.png",
+        iconSize: [35, 35],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+    });
     if (airportData.ident === globalData.playerData.home) {
+        // add home marker
         airportMarker = L.marker(
             [airportData.latitude_deg, airportData.longitude_deg],
-            { icon: iconType },
+            { icon: homeIcon },
         ).addTo(airportMarkerGroup);
         airportMarker.bindTooltip(
             `<h2>${airportData.country_name}</h2><p>${airportData.name} <b>(${airportData.ident})</b></p><p>This is your home</p>`,
@@ -338,17 +343,21 @@ async function updateMap(gameID, map, airportMarkerGroup) {
     const airportsData = airportsResponse.airports;
 
     const greenIcon = L.icon({
-        iconUrl:
-            "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
+        iconUrl: "../static/img/marker-green.png",
         iconSize: [25, 41],
         iconAnchor: [12, 41],
         popupAnchor: [1, -34],
     });
     // out range airports
     const redIcon = L.icon({
-        iconUrl:
-            "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
+        iconUrl: "../static/img/marker-red.png",
         iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+    });
+    const currentIcon = L.icon({
+        iconUrl: "../static/img/marker-plane.png",
+        iconSize: [35, 35],
         iconAnchor: [12, 41],
         popupAnchor: [1, -34],
     });
@@ -361,7 +370,7 @@ async function updateMap(gameID, map, airportMarkerGroup) {
 
         // whether disable the marker or not
         if (airportData.current === true) {
-            addMarker(redIcon, airportMarkerGroup, airportData, true);
+            addMarker(currentIcon, airportMarkerGroup, airportData, true);
         } else if (range_fuel === false || range_time === false) {
             console.log("out range");
             addMarker(redIcon, airportMarkerGroup, airportData, true);
