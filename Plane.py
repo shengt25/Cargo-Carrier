@@ -36,7 +36,7 @@ class Plane:
 
     def calculate_time_consumption(self, ident):
         distance = self.calculate_distance(ident)
-        time = round(distance / self.speed_per_h * 3600)
+        time = round(distance / self.speed_per_h, 1)
         return time
 
     def calculate_emission_consumption(self, ident):
