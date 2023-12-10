@@ -624,7 +624,6 @@ async function buyCallback(item) {
     const gameID = getGameIDFromUrl();
     const [map, airportMarkerGroup] = initMap();
     globalData.gameID = gameID;
-    globalData.airportsData = await updateMap(gameID, map, airportMarkerGroup);
 
     // init player status
     initGlobalPlayerStatus();
@@ -633,11 +632,15 @@ async function buyCallback(item) {
     setTimeout(async () => {
         // update player status
         globalData.playerData = await updatePlayerStatus(gameID);
+        globalData.airportsData = await updateMap(
+            gameID,
+            map,
+            airportMarkerGroup,
+        );
         document.getElementById(
             "hall-dialogue-text",
         ).innerText = `Good morning ${globalData.playerData.name}, Welcome!\nYour goal is to earn €20 000 in 10 days. Ready to start? Good luck!`;
 
         document.getElementById("btn-hall").click();
     }, 500);
-
 })();
