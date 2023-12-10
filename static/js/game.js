@@ -231,13 +231,23 @@ async function updatePlayerStatus(gameID) {
     return playerData;
 }
 
-function updateFlyProtocol(airportData) {
+async function updateFlyProtocol(airportData) {
+    console.log("updateFlyProtocol");
     const countryName = document.getElementById("flight-country-name");
     const airportName = document.getElementById("flight-airport-name");
     const fuel = document.getElementById("flight-fuel");
     const time = document.getElementById("flight-time");
     const emission = document.getElementById("flight-emission");
     const reward = document.getElementById("flight-reward");
+    const weather = document.getElementById("monitor-txt");
+    const monitor = document.getElementById("monitor");
+    // todo display weather
+    const weatherData = await getData(
+        `https://api.openweathermap.org/data/2.5/weather?lat=${airportData.latitude_deg}&lon=${airportData.longitude_deg}&appid=d904fae05dc5609aa5ed95ed4f2f3feb&units=metric`,
+    );
+    monitor.style.backgroundImage = "none";
+    weather.innerText = `Weather: ${weatherData.main.temp} Celsius, ${weatherData.weather[0].description}`;
+
     if (airportData.current === true) {
         countryName.innerText = `${airportData.country_name}`;
         airportName.innerText = `${airportData.name}`;
@@ -328,7 +338,7 @@ function addMarker(iconType, airportMarkerGroup, airportData, isDisabled) {
         console.log(airportData);
         document.getElementById("btn-fly").disabled = isDisabled;
         document.getElementById("stamp").style.display = "none";
-        updateFlyProtocol(airportData);
+        void updateFlyProtocol(airportData);
         globalData.selectedAirport = airportData;
     });
 }
@@ -382,16 +392,31 @@ async function updateMap(gameID, map, airportMarkerGroup) {
     return airportsData;
 }
 
+function mapAnimation() {
+
+}
+
 //------------------------------
 //  BUY BUTTON EVENT CALLBACKS
 //------------------------------
-async function buyCallback(item) {
+async function buyCallback(
+    item,
+    gameID = null,
+    map = null,
+    airportMarkerGroup = null,
+) {
     let amount;
     let inputElem;
     if (item === "fuel") {
         inputElem = document.getElementById("shop-item-fuel-input");
         amount = inputElem.value;
         inputElem.value = "";
+
+        globalData.airportsData = await updateMap(
+            gameID,
+            map,
+            airportMarkerGroup,
+        );
     } else if (item === "coffee") {
         inputElem = document.getElementById("shop-item-coffee-input");
         amount = inputElem.value;
@@ -471,7 +496,7 @@ async function buyCallback(item) {
         document.getElementById("btn-hall").click();
     }, 500);
 
-        //------------------------------
+    //------------------------------
     //   SET EVENT LISTENERS
     //------------------------------
     // NOTE: in click events, game data should also be updated to globalData
@@ -479,8 +504,9 @@ async function buyCallback(item) {
     // buy fuel button listener
     document
         .getElementById("shop-item-fuel-btn")
-        .addEventListener("click", async () => buyCallback("fuel"));
-    globalData.airportsData = await updateMap(gameID, map, airportMarkerGroup);
+        .addEventListener("click", async () =>
+            buyCallback("fuel", gameID, map, airportMarkerGroup),
+        );
 
     // buy fuel coffee listener
     document
@@ -656,5 +682,4 @@ async function buyCallback(item) {
             console.log("User canceled game exit.");
         }
     });
-
 })();

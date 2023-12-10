@@ -98,6 +98,7 @@ class Plane:
         #     self.check_time_ending()
 
     def get_all_airports(self):
+        self.update_all_airports()
         return self.airports
 
     def check_money_ending(self):

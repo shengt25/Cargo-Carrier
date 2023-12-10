@@ -416,16 +416,20 @@ html {
 #main-section-right #monitor {
     display: flex;
     width: 100%;
+    padding: 20px;
     background-image: url("../img/Radar1.gif");
     background-size: cover;
     background-position: center;
-    /*height: calc(300px * 9 / 16);*/
     height: 200px;
-    box-shadow: #000000 0 0 30px 15px inset;
+    box-shadow: #000000 0 0 20px 3px inset;
     border: 2px grey solid;
-    /*background-color: #72726f;*/
+    background-color: #b0b0b0;
 }
-
+#monitor-txt{
+    display: inline;
+    font-family: "Handlee", sans-serif;
+    font-size: 1.5em;
+}
 #main-section-right #monitor-flight-divider {
     display: block;
     width: 100%;
@@ -446,20 +450,35 @@ html {
     /*background-color: blueviolet;*/
 }
 
+#flight {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    background-image: url("../img/protocol-bg.png");
+    flex-grow: 1;
+    width: 100%;
+    height: calc(800px - 200px - 30px);
+    box-shadow: #000000 0 0 5px 1px inset;
+    border: 2px grey solid;
+}
+
+
 #flight-text-container {
     width: 85%;
+
     /*background-color: #000000;*/
 }
 
 #flight-text-container p, #flight-text-container h2 {
     font-family: "Handlee", sans-serif;
-    font-size: 1.6em;
+    font-size: 1.5em;
     /*text-decoration: underline;*/
     z-index: 2;
 }
 
+
 #flight-fuel, #flight-time, #flight-emission, #flight-reward {
-    text-decoration: underline;
+    /*text-decoration: underline;*/
 }
 
 #fly-btn-container {

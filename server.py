@@ -22,8 +22,8 @@ shop_param = {"fuel": {"price": 1, "description": "Fuel"},
               "coffee": {"price": 2, "description": "Coffee"},
               "airport": {"price": 20000, "description": "Airport"}}
 
-player_param = {"money": 10000,
-                "fuel": 100000,
+player_param = {"money": 100000,
+                "fuel": 10000,
                 "time": 800000}
 
 plane_param = {"fuel_per_km": 1.2,
