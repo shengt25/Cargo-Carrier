@@ -1,0 +1,37 @@
+@import url('https://fonts.cdnfonts.com/css/8bit-wonder');
+
+@font-face {
+    font-family: 'Caveat';
+    src: url('/static/font/Caveat-Regular.ttf') format('woff2');
+}
+
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+main {
+    display: flex;
+    flex-direction: column;
+    /* align-items: center; */
+    justify-content: center;
+    height: 100vh;
+    padding: 0 3rem;
+    background-image: url("../img/maxtrix.jpg");
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
+#text {
+    font-family: '8BIT WONDER', sans-serif;
+    font-size: 2rem;
+    padding: 1rem 0;
+    margin-bottom: 8rem;
+    align-self: center;
+    color: green;
+}
+
+h2 {
+    font-size: 5rem !important;
+}

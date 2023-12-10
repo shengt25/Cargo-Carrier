@@ -296,15 +296,16 @@ async function isGameFinish() {
 function initMap() {
     const map = L.map("map", { tap: false });
     const airportMarkerGroup = L.featureGroup().addTo(map);
+    const currentMarkerGroup = L.featureGroup().addTo(map);
     L.tileLayer("https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}", {
         maxZoom: 20,
         subdomains: ["mt0", "mt1", "mt2", "mt3"],
     }).addTo(map);
     map.setView([60, 24], 3);
-    return [map, airportMarkerGroup];
+    return [map, airportMarkerGroup, currentMarkerGroup];
 }
 
-function addMarker(iconType, airportMarkerGroup, airportData, isDisabled) {
+function addMarker(iconType, markerGroup, airportData, isDisabled) {
     // add marker to map
     // add event listener to marker
     // event listener will update fly protocol and fly button disabled status
@@ -320,7 +321,7 @@ function addMarker(iconType, airportMarkerGroup, airportData, isDisabled) {
         airportMarker = L.marker(
             [airportData.latitude_deg, airportData.longitude_deg],
             { icon: homeIcon },
-        ).addTo(airportMarkerGroup);
+        ).addTo(markerGroup);
         airportMarker.bindTooltip(
             `<h2>${airportData.country_name}</h2><p>${airportData.name} <b>(${airportData.ident})</b></p><p>This is your home</p>`,
         );
@@ -328,7 +329,7 @@ function addMarker(iconType, airportMarkerGroup, airportData, isDisabled) {
         airportMarker = L.marker(
             [airportData.latitude_deg, airportData.longitude_deg],
             { icon: iconType },
-        ).addTo(airportMarkerGroup);
+        ).addTo(markerGroup);
         airportMarker.bindTooltip(
             `<h2>${airportData.country_name}</h2><p>${airportData.name} <b>(${airportData.ident})</b></p>`,
         );
@@ -343,7 +344,7 @@ function addMarker(iconType, airportMarkerGroup, airportData, isDisabled) {
     });
 }
 
-async function updateMap(gameID, map, airportMarkerGroup) {
+async function updateMap(gameID, map, airportMarkerGroup, currentMarkerGroup) {
     // get new airports data from server
     // clear layers
     // new markers with different colors
@@ -373,6 +374,7 @@ async function updateMap(gameID, map, airportMarkerGroup) {
     });
 
     airportMarkerGroup.clearLayers();
+    currentMarkerGroup.clearLayers();
     Object.keys(airportsData).forEach((ident) => {
         const airportData = airportsData[ident];
         const range_fuel = airportData.range_fuel;
@@ -380,7 +382,7 @@ async function updateMap(gameID, map, airportMarkerGroup) {
 
         // whether disable the marker or not
         if (airportData.current === true) {
-            addMarker(currentIcon, airportMarkerGroup, airportData, true);
+            addMarker(currentIcon, currentMarkerGroup, airportData, true);
         } else if (range_fuel === false || range_time === false) {
             console.log("out range");
             addMarker(redIcon, airportMarkerGroup, airportData, true);
@@ -392,8 +394,50 @@ async function updateMap(gameID, map, airportMarkerGroup) {
     return airportsData;
 }
 
-function mapAnimation() {
+function mapAnimation(markerGroup, airportDataStart, airportDataEnd) {
+    let planeMarker;
+    const planeIcon = L.icon({
+        iconUrl: "../static/img/marker-plane.png",
+        iconSize: [35, 35],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+    });
+    console.log("map animation");
 
+    const latStart = airportDataStart.latitude_deg;
+    const lngStart = airportDataStart.longitude_deg;
+    const latEnd = airportDataEnd.latitude_deg;
+    const lngEnd = airportDataEnd.longitude_deg;
+
+    // calculate the difference between start and end
+    const latDiff = latEnd - latStart;
+    const lngDiff = lngEnd - lngStart;
+
+    // calculate the duration and interval
+    const duration = 5000;
+    const steps = 100;
+    const interval = duration / steps;
+
+    // make marker move!
+    let currentStep = 0;
+    planeMarker = L.marker([latStart, lngStart], { icon: planeIcon }).addTo(
+        markerGroup,
+    );
+
+    function animateMarker() {
+        let lat = latStart + (latDiff * currentStep) / steps;
+        let lng = lngStart + (lngDiff * currentStep) / steps;
+        planeMarker.setLatLng([lat, lng]);
+        console.log("animate: " + lat, lng);
+        if (currentStep < steps) {
+            currentStep++;
+            setTimeout(animateMarker, interval);
+        }
+    }
+    // random between 1 and 5
+    const a = Math.floor(Math.random() * 10) + 1;
+    // todo
+    animateMarker();
 }
 
 //------------------------------
@@ -404,6 +448,7 @@ async function buyCallback(
     gameID = null,
     map = null,
     airportMarkerGroup = null,
+    currentMarkerGroup = null,
 ) {
     let amount;
     let inputElem;
@@ -416,6 +461,7 @@ async function buyCallback(
             gameID,
             map,
             airportMarkerGroup,
+            currentMarkerGroup,
         );
     } else if (item === "coffee") {
         inputElem = document.getElementById("shop-item-coffee-input");
@@ -474,7 +520,7 @@ async function buyCallback(
     // have to display map first, otherwise map will not be setup correctly
     document.getElementById("map").style.display = "flex";
     const gameID = getGameIDFromUrl();
-    const [map, airportMarkerGroup] = initMap();
+    const [map, airportMarkerGroup, currentMarkerGroup] = initMap();
     globalData.gameID = gameID;
 
     // init player status
@@ -488,6 +534,7 @@ async function buyCallback(
             gameID,
             map,
             airportMarkerGroup,
+            currentMarkerGroup,
         );
         document.getElementById(
             "hall-dialogue-text",
@@ -505,7 +552,13 @@ async function buyCallback(
     document
         .getElementById("shop-item-fuel-btn")
         .addEventListener("click", async () =>
-            buyCallback("fuel", gameID, map, airportMarkerGroup),
+            buyCallback(
+                "fuel",
+                gameID,
+                map,
+                airportMarkerGroup,
+                currentMarkerGroup,
+            ),
         );
 
     // buy fuel coffee listener
@@ -530,6 +583,9 @@ async function buyCallback(
             }
 
             if (globalData.selectedAirport) {
+                const identBefore = globalData.playerData.location;
+                let airportDataStart = globalData.airportsData[identBefore];
+                let airportDataEnd = globalData.selectedAirport;
                 try {
                     // try to fly
                     const jsonData = {
@@ -540,22 +596,34 @@ async function buyCallback(
                         jsonData,
                     );
                     if (response.success) {
-                        // if success, update player status and map
-                        globalData.airportsData = await updateMap(
-                            gameID,
-                            map,
-                            airportMarkerGroup,
-                        );
+                        // update player status
+
                         globalData.playerData =
                             await updatePlayerStatus(gameID);
-                        // disable fly button
-                        globalData.selectedAirport = null;
-                        event.target.disabled = true;
                         // show stamp
                         const stamp = document.getElementById("stamp");
+                        // disable fly button
+                        event.target.disabled = true;
+                        globalData.selectedAirport = null;
+                        // show stamp
                         stamp.style.display = "block";
-                        // go to hall
-                        document.getElementById("btn-hall").click();
+                        currentMarkerGroup.clearLayers();
+
+                        mapAnimation(
+                            currentMarkerGroup,
+                            airportDataStart,
+                            airportDataEnd,
+                        );
+
+                        setTimeout(async () => {
+                            globalData.airportsData = await updateMap(
+                                gameID,
+                                map,
+                                airportMarkerGroup,
+                                currentMarkerGroup,
+                            );
+                            document.getElementById("btn-hall").click();
+                        }, 6000);
                     }
                 } catch (error) {
                     console.error(error);
@@ -599,7 +667,12 @@ async function buyCallback(
                 }
                 // check if game is ends
                 void isGameFinish();
-                void updateMap(gameID, map, airportMarkerGroup);
+                void updateMap(
+                    gameID,
+                    map,
+                    airportMarkerGroup,
+                    currentMarkerGroup,
+                );
             } catch (error) {
                 console.error(error);
             }
@@ -667,7 +740,12 @@ async function buyCallback(
                 }
                 // check if game is ends
                 void isGameFinish();
-                void updateMap(gameID, map, airportMarkerGroup);
+                void updateMap(
+                    gameID,
+                    map,
+                    airportMarkerGroup,
+                    currentMarkerGroup,
+                );
             } catch (error) {
                 console.error(error);
             }

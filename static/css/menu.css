@@ -1,0 +1,21 @@
+@import url('https://fonts.cdnfonts.com/css/8bit-wonder');
+
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+
+#wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    background-image: url("../img/radar.gif");
+    height: 100vh;
+}
+
+.btn {
+    width: 20%;
+}

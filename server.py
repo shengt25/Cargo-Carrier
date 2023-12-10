@@ -3,13 +3,10 @@ import hashlib
 import time
 from Game import Game
 from datetime import datetime
-from flask_cors import CORS
 from utils import Database
 
 local = True
 
-app = Flask(__name__)
-cors = CORS(app)
 game_list = {}
 airport_number = 10
 database_param = {"host": "127.0.0.1",
@@ -31,6 +28,9 @@ plane_param = {"fuel_per_km": 1.2,
                "emission_per_km": 0.1,
                "reward_per_km": 1.2,
                "hire_cost": 600}
+master_database = Database(database_param)
+
+app = Flask(__name__)
 
 
 def generate_game_id():
@@ -49,9 +49,18 @@ def print_log(game_id, text):
 
 
 @app.route("/")
-def index():
-    webpage = render_template('index.html')
-    return webpage
+def frontpage():
+    return render_template('frontpage.html')
+
+
+@app.route('/highscores')
+def highscores():
+    return render_template('highscores.html')
+
+
+@app.route('/credits')
+def credits_():
+    return render_template('credits.html')
 
 
 @app.route("/game/<game_id>")
@@ -254,7 +263,6 @@ def get_highscore():
 
 
 if __name__ == "__main__":
-    master_database = Database(database_param)
 
     if local:
         app.run(debug=True, host="127.0.0.1", port=5000)
