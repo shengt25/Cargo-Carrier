@@ -270,7 +270,6 @@ html {
 
 #shop-board-container, #hall-board-container {
     position: absolute;
-    display: flex;
     flex-wrap: wrap;
     height: 372px;
     top: 40px;
@@ -300,7 +299,7 @@ html {
 }
 
 #shop-dialogue-text-container, #hall-dialogue-text-container {
-    padding: 0 20px 45px 20px;
+    padding: 10px 20px 45px 20px;
     position: absolute;
     justify-content: center;
     width: 100%;
@@ -308,11 +307,12 @@ html {
     z-index: 3;
 }
 
+/*dialog text font size*/
 #shop-dialogue-text-container p, #hall-dialogue-text-container p {
     display: inline;
     top: 0;
     font-family: "Handlee", sans-serif;
-    font-size: 1.5em;
+    font-size: 1.8em;
 }
 
 /*********************/
