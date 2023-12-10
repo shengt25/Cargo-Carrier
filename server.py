@@ -247,19 +247,17 @@ def check_ending(game_id):
 @app.route("/get-highscore")
 def get_highscore():
     scores = []
-    high_score_ordered = {}
     sql_query = "SELECT screen_name, money, fuel, emission, time, score FROM game ORDER BY score DESC LIMIT 10"
     high_scores = master_database.query(sql_query)
     for item in high_scores:
         scores.append(item["score"])
     scores.sort(reverse=True)
-
-    for score in scores:
-        for item in high_scores:
+    for item in high_scores:
+        for i, score in enumerate(scores):
             if item["score"] == score:
-                high_score_ordered[scores.index(score) + 1] = item
+                item["rank"] = i + 1
                 break
-    return high_score_ordered
+    return high_scores
 
 
 if __name__ == "__main__":
