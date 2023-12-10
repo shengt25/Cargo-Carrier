@@ -18,18 +18,18 @@ database_param = {"host": "127.0.0.1",
                   "database": "cargo_carrier",
                   "port": 3306}
 
-shop_param = {"fuel": {"price": 100, "description": "Fuel"},
-              "coffee": {"price": 1, "description": "Coffee"},
+shop_param = {"fuel": {"price": 1, "description": "Fuel"},
+              "coffee": {"price": 2, "description": "Coffee"},
               "airport": {"price": 20000, "description": "Airport"}}
 
 player_param = {"money": 100000,
                 "fuel": 100000,
                 "time": 80000}
 
-plane_param = {"fuel_per_km": 1,
+plane_param = {"fuel_per_km": 1.2,
                "speed_per_h": 800,
-               "emission_per_km": 1.2,
-               "reward_per_km": 2,
+               "emission_per_km": 0.1,
+               "reward_per_km": 1.2,
                "hire_cost": 600}
 
 
@@ -42,6 +42,7 @@ def generate_game_id():
 
 
 def print_log(game_id, text):
+    # todo log response automatically
     current_time = datetime.now()
     formatted_text = current_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:23] + " | " + game_id + " | " + text
     print(formatted_text)
