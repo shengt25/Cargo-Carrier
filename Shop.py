@@ -57,7 +57,6 @@ class Shop:
         return response
 
     def buy_airport(self):
-
         if self.player.location != self.player.home:
             message = "[fail] buy: airport how do you buy airport when you are not at home?"
             response = {"success": False,

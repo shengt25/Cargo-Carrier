@@ -42,7 +42,7 @@ def generate_game_id():
 
 
 def print_log(game_id, text):
-    # todo log response automatically
+    # todo log response automatically with extra text and ok or fail info, etc
     current_time = datetime.now()
     formatted_text = current_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:23] + " | " + game_id + " | " + text
     print(formatted_text)
@@ -67,10 +67,16 @@ def credits_():
 def game(game_id):
     if game_id not in game_list:
         print_log(game_id, "[fail] game: game not found")
-        webpage = "<h1>Game not found</h1>"
+        webpage = "<h1>Invalid Game Session: not found</h1>"
     else:
-        print_log(game_id, "[ok] game: game home page")
-        webpage = render_template('game.html')
+        is_finish = game_list[game_id].player.finish
+        if is_finish:
+            del game_list[game_id]
+            print_log(game_id, "[fail] game: game already finished")
+            webpage = "<h1>Invalid Game Session: already finished</h1>"
+        else:
+            print_log(game_id, "[ok] game: game home page")
+            webpage = render_template('game.html')
     return webpage
 
 
@@ -101,6 +107,13 @@ def get_airports_data(game_id):
         response = {"success": False,
                     "message": message}
     else:
+        # todo not a good way to delete game session
+        is_finish = game_list[game_id].player.finish
+        if is_finish:
+            del game_list[game_id]
+            print_log(game_id, "[fail] game: game already finished")
+            webpage = "<h1>Invalid Game Session: already finished</h1>"
+            return webpage
         message = "[ok] get-airports-data"
         print_log(game_id, message)
         response = {"success": True,
@@ -233,6 +246,8 @@ def check_ending(game_id):
                     "score": score,
                     "message": message}
         game_list[game_id].database.query(sql_query, parameter)
+        # finish the game for time ending
+        del game_list[game_id]
         return response
     if money_ending:
         response = {"end": True,
@@ -240,6 +255,8 @@ def check_ending(game_id):
                     "score": score,
                     "message": message}
         game_list[game_id].database.query(sql_query, parameter)
+        # finish the game for money ending
+        del game_list[game_id]
         return response
     return {"end": False, "score": score, "message": message}
 

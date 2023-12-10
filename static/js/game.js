@@ -281,10 +281,18 @@ async function isGameFinish() {
             // out of time
             document.getElementById("hall-dialogue-text").innerText =
                 "Sorry, you run out of time...\n Game over.";
+            // todo not good to jump directly
+            setTimeout(() => {
+                window.location.href = `/credits`;
+            }, 5000);
         } else if (endType === "money") {
             // out of money
             document.getElementById("hall-dialogue-text").innerText =
                 "Sorry, you run out of money...\n Game over.";
+            // todo not good to jump directly
+            setTimeout(() => {
+                window.location.href = `/credits`;
+            }, 5000);
         }
     }
 }
@@ -434,9 +442,11 @@ function mapAnimation(markerGroup, airportDataStart, airportDataEnd) {
             setTimeout(animateMarker, interval);
         }
     }
+
     // random between 1 and 5
-    const a = Math.floor(Math.random() * 10) + 1;
-    // todo
+    const windowNumber = Math.floor(Math.random() * 10) + 1;
+    const windowFileName = "window" + windowNumber + ".gif";
+    document.getElementById();
     animateMarker();
 }
 
@@ -456,13 +466,6 @@ async function buyCallback(
         inputElem = document.getElementById("shop-item-fuel-input");
         amount = inputElem.value;
         inputElem.value = "";
-
-        globalData.airportsData = await updateMap(
-            gameID,
-            map,
-            airportMarkerGroup,
-            currentMarkerGroup,
-        );
     } else if (item === "coffee") {
         inputElem = document.getElementById("shop-item-coffee-input");
         amount = inputElem.value;
@@ -489,12 +492,24 @@ async function buyCallback(
             globalData.playerData = await updatePlayerStatus(globalData.gameID);
 
             // fuel is special, because the amount is money not items amount
-            if (item === "fuel")
+            // and also need to update map
+            if (item === "fuel") {
+                globalData.airportsData = await updateMap(
+                    gameID,
+                    map,
+                    airportMarkerGroup,
+                    currentMarkerGroup,
+                );
                 dialogText.innerText = `Thank you! 
                 You just bought ${response.amount} ton fuel with € ${amount}.`;
-            else if (item === "airport") {
+            } else if (item === "airport") {
                 // win!!!
-                dialogText.innerText = `Congratulations ${globalData.playerData.name}! Finally you made it!`;
+                dialogText.innerText = `Congratulations ${globalData.playerData.name}! Finally you made it!\n 
+                Your dream came true`;
+                // todo not good to jump directly
+                setTimeout(() => {
+                    window.location.href = `/credits`;
+                }, 5000);
             }
             // other countable items
             else
@@ -755,6 +770,7 @@ async function buyCallback(
     document.getElementById("shutdown").addEventListener("click", () => {
         const userConfirmed = confirm("Do you want to exit the game?");
         if (userConfirmed) {
+            window.location.href = "/";
             console.log("Exiting the game...");
         } else {
             console.log("User canceled game exit.");
