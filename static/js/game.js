@@ -441,6 +441,37 @@ async function buyCallback(item) {
 
 (async () => {
     //------------------------------
+    //   INIT GAME
+    //------------------------------
+    // init panel button
+    initPanelButton();
+
+    // have to display map first, otherwise map will not be setup correctly
+    document.getElementById("map").style.display = "flex";
+    const gameID = getGameIDFromUrl();
+    const [map, airportMarkerGroup] = initMap();
+    globalData.gameID = gameID;
+
+    // init player status
+    initGlobalPlayerStatus();
+
+    // wait 500ms and start new game in hall
+    setTimeout(async () => {
+        // update player status
+        globalData.playerData = await updatePlayerStatus(gameID);
+        globalData.airportsData = await updateMap(
+            gameID,
+            map,
+            airportMarkerGroup,
+        );
+        document.getElementById(
+            "hall-dialogue-text",
+        ).innerText = `Good morning ${globalData.playerData.name}, Welcome!\nYour goal is to earn €20 000 in 10 days. Ready to start? Good luck!`;
+
+        document.getElementById("btn-hall").click();
+    }, 500);
+
+        //------------------------------
     //   SET EVENT LISTENERS
     //------------------------------
     // NOTE: in click events, game data should also be updated to globalData
@@ -449,6 +480,7 @@ async function buyCallback(item) {
     document
         .getElementById("shop-item-fuel-btn")
         .addEventListener("click", async () => buyCallback("fuel"));
+    globalData.airportsData = await updateMap(gameID, map, airportMarkerGroup);
 
     // buy fuel coffee listener
     document
@@ -473,7 +505,7 @@ async function buyCallback(item) {
 
             if (globalData.selectedAirport) {
                 try {
-                    // fly and get new data
+                    // try to fly
                     const jsonData = {
                         ident: globalData.selectedAirport.ident,
                     };
@@ -482,6 +514,7 @@ async function buyCallback(item) {
                         jsonData,
                     );
                     if (response.success) {
+                        // if success, update player status and map
                         globalData.airportsData = await updateMap(
                             gameID,
                             map,
@@ -624,34 +657,4 @@ async function buyCallback(item) {
         }
     });
 
-    //------------------------------
-    //   INIT GAME
-    //------------------------------
-    // init panel button
-    initPanelButton();
-
-    // have to display map first, otherwise map will not be setup correctly
-    document.getElementById("map").style.display = "flex";
-    const gameID = getGameIDFromUrl();
-    const [map, airportMarkerGroup] = initMap();
-    globalData.gameID = gameID;
-
-    // init player status
-    initGlobalPlayerStatus();
-
-    // wait 500ms and start new game in hall
-    setTimeout(async () => {
-        // update player status
-        globalData.playerData = await updatePlayerStatus(gameID);
-        globalData.airportsData = await updateMap(
-            gameID,
-            map,
-            airportMarkerGroup,
-        );
-        document.getElementById(
-            "hall-dialogue-text",
-        ).innerText = `Good morning ${globalData.playerData.name}, Welcome!\nYour goal is to earn €20 000 in 10 days. Ready to start? Good luck!`;
-
-        document.getElementById("btn-hall").click();
-    }, 500);
 })();

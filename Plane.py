@@ -66,7 +66,7 @@ class Plane:
             return False, time_consumption, time
 
     def update_all_airports(self):
-        can_go_somewhere = 0
+        # can_go_somewhere = 0
         for ident in self.airports:
             if ident == self.player.location:
                 # exclude current airport, set to be false
@@ -85,17 +85,17 @@ class Plane:
                 self.airports[ident]["emission"] = self.calculate_emission_consumption(ident)
                 if success_reach_fuel:
                     self.airports[ident]["range_fuel"] = True
-                    can_go_somewhere += 1
+                    # can_go_somewhere += 1
                 else:
                     self.airports[ident]["range_fuel"] = False
                 if success_reach_time:
                     self.airports[ident]["range_time"] = True
-                    can_go_somewhere += 1
+                    # can_go_somewhere += 1
                 else:
                     self.airports[ident]["range_time"] = False
-        if can_go_somewhere == 0:  # todo what is this for?
-            self.check_money_ending()
-            self.check_time_ending()
+        # if can_go_somewhere == 0:  # todo what is this for?
+        #     self.check_money_ending()
+        #     self.check_time_ending()
 
     def get_all_airports(self):
         return self.airports
