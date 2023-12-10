@@ -4,8 +4,8 @@
 }
 
 @font-face {
-    font-family: '8BIT-WONDER';
-    src: url('../font/8bit-wonder.woff') format('woff')
+    font-family: 'VerminVibesV-Zlg3';
+    src: url('../font/VerminVibesV-Zlg3.ttf') format('woff2')
 }
 
 * {
@@ -182,8 +182,8 @@ html {
 }
 
 .status-text-container {
-    font-family: "8BIT-WONDER", sans-serif;
-    font-size: 18px;
+    font-family: "VerminVibesV-Zlg3", sans-serif;
+    font-size: 1.3em;
 
 }
 
@@ -311,8 +311,8 @@ html {
 #shop-dialogue-text-container p, #hall-dialogue-text-container p {
     display: inline;
     top: 0;
-    font-family: "Handlee", sans-serif;
-    font-size: 1.8em;
+    font-family: "Verdana", sans-serif;
+    font-size: 1.5em;
 }
 
 /*********************/

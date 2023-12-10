@@ -170,8 +170,8 @@ function initPanelButton() {
             }, 500);
             document.getElementById("hall-dialogue-text").innerText =
                 "Now you need to unload the cargo, two choices:" +
-                "\nI. Do it yourself: a dice game will decide your fate." +
-                "\nII. Hire someone: €600, no risk no reward.";
+                "\n\nI. Do it yourself: random event will happen." +
+                "\nII. Hire someone: €600. No risk, no reward.";
         }
     });
 }
@@ -540,6 +540,7 @@ async function buyCallback(item) {
                 }
                 // check if game is ends
                 void isGameFinish();
+                void updateMap(gameID, map, airportMarkerGroup);
             } catch (error) {
                 console.error(error);
             }
@@ -607,6 +608,7 @@ async function buyCallback(item) {
                 }
                 // check if game is ends
                 void isGameFinish();
+                void updateMap(gameID, map, airportMarkerGroup);
             } catch (error) {
                 console.error(error);
             }
