@@ -6,6 +6,14 @@ class Shop:
         self.verbose = verbose
 
     def buy_item(self, item, amount):
+        try:
+            amount = int(amount)
+        except ValueError:
+            response = {"success": False,
+                        "reason": "not numeric",
+                        "message": f"{amount} is not numeric"}
+            return response
+
         if item not in self.items:
             response = {"success": False,
                         "reason": "not found",
@@ -16,6 +24,7 @@ class Shop:
                 self.player.update_value(money_change=-expense)
                 response = {"success": True,
                             "player": self.player.get_all_data(),
+                            "amount": amount,
                             "message": f"Bought {item} successfully"}
             else:
                 response = {"success": False,
@@ -23,16 +32,25 @@ class Shop:
                             "message": f"Bought {item} failed"}
         return response
 
-    def buy_fuel(self, amount):
-        expense = self.items["fuel"]["price"] * amount
+    def buy_fuel(self, expense):
+        try:
+            expense = int(expense)
+        except ValueError:
+            response = {"success": False,
+                        "reason": "not numeric",
+                        "message": f"{expense} is not numeric"}
+            return response
+
         if self.player.money >= expense:
+            amount = expense / self.items["fuel"]["price"]
             self.player.update_value(fuel_change=amount, money_change=-expense)
             message = "[ok] buy: fuel"
             response = {"success": True,
+                        "amount": amount,
                         "player": self.player.get_all_data(),
                         "message": message}
         else:
-            message = "[fail] buy: fuel"
+            message = "Sorry, you don't have enough money"
             response = {"success": False,
                         "reason": "money",
                         "message": message}
@@ -61,4 +79,3 @@ class Shop:
                         "reason": "money",
                         "message": message}
         return response
-
