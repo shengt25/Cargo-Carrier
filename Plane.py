@@ -68,7 +68,12 @@ class Plane:
     def update_all_airports(self):
         can_go_somewhere = 0
         for ident in self.airports:
-            if ident != self.player.location:
+            if ident == self.player.location:
+                # exclude current airport, set to be false
+                self.airports[ident]["range_fuel"] = False
+                self.airports[ident]["range_time"] = False
+                self.airports[ident]["current"] = True
+            else:
                 success_reach_fuel, fuel_consumption, _ = self.can_reach_fuel(ident)
                 success_reach_time, time_consumption, _ = self.can_reach_time(ident)
                 reward = self.calculate_reward(ident)
@@ -88,8 +93,6 @@ class Plane:
                     can_go_somewhere += 1
                 else:
                     self.airports[ident]["range_time"] = False
-            else:
-                self.airports[ident]["current"] = True
         if can_go_somewhere == 0:  # todo what is this for?
             self.check_money_ending()
             self.check_time_ending()
@@ -201,14 +204,21 @@ class Plane:
             response = {"success": False,
                         "message": "How do you unload without cargo, hacker?"}
         else:
-            self.player.has_cargo = False
             if option == 0 or option == "0":
-                self.player.update_value(money_change=-self.hire_cost)
-                response = {"success": True,
-                            "option": option,
-                            "player": self.player.get_all_data(),
-                            "message": "You choose to hire"}
+                if self.player.money < self.hire_cost:
+                    response = {"success": False,
+                                "reason": "money",
+                                "message": "Not enough money to hire."}
+                    return response
+                else:
+                    self.player.update_value(money_change=-self.hire_cost)
+                    self.player.has_cargo = False
+                    response = {"success": True,
+                                "option": option,
+                                "player": self.player.get_all_data(),
+                                "message": "You choose to hire"}
             else:
+                self.player.has_cargo = False
                 dice_result = random.randint(1, 6)
                 if dice_result == 1:
                     self.player.update_value(money_change=-self.player.money * 0.9)
@@ -222,6 +232,10 @@ class Plane:
                     self.player.update_value(money_change=1800)
                 elif dice_result == 6:
                     self.player.update_value(money_change=self.player.money)
+
+                # reset money to be 0 if less than 0, if choose dice
+                if self.player.money < 0:
+                    self.player.money = 0
                 response = {"success": True,
                             "dice": dice_result,
                             "player": self.player.get_all_data(),

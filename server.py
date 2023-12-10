@@ -22,9 +22,9 @@ shop_param = {"fuel": {"price": 1, "description": "Fuel"},
               "coffee": {"price": 2, "description": "Coffee"},
               "airport": {"price": 20000, "description": "Airport"}}
 
-player_param = {"money": 100000,
-                "fuel": 100000,
-                "time": 80000}
+player_param = {"money": 10,
+                "fuel": 1000,
+                "time": 8000}
 
 plane_param = {"fuel_per_km": 1.2,
                "speed_per_h": 800,
@@ -220,14 +220,14 @@ def check_ending(game_id):
     # check time ending first because it ends the game immediately
     if time_ending:
         response = {"end": True,
-                    "type": "lose",
+                    "type": "time",
                     "score": score,
                     "message": message}
         game_list[game_id].database.query(sql_query, parameter)
         return response
     if money_ending:
         response = {"end": True,
-                    "type": "lose",
+                    "type": "money",
                     "score": score,
                     "message": message}
         game_list[game_id].database.query(sql_query, parameter)

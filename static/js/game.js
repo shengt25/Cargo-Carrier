@@ -1,9 +1,16 @@
 //------------------------------
 //  Global Variables
 //------------------------------
-let selectedAirport;
-let airportsData;
-let playerData;
+class GlobalData {
+    constructor() {
+        this.selectedAirport = null;
+        this.airportsData = null;
+        this.playerData = null;
+        this.gameID = null;
+    }
+}
+
+const globalData = new GlobalData();
 
 //------------------------------
 //  BASIC POST AND GET FUNCTIONS
@@ -16,22 +23,15 @@ async function getData(url) {
 }
 
 async function postData(url, data) {
-    try {
-        const response = await fetch(url, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data), // convert JavaScript object to JSON string
-        });
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        return await response.json();
-    } catch (error) {
-        console.error("Error:", error);
-        return await error.json();
-    }
+    const response = await fetch(url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data), // convert JavaScript object to JSON string
+    });
+    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+    return await response.json();
 }
 
 function getGameIDFromUrl() {
@@ -67,6 +67,7 @@ function initPanelButton() {
     shopDiv.style.display = "none";
     mapDiv.style.display = "none";
 
+    // event listeners for panel buttons shop, map, hall
     document.getElementById("btn-shop").addEventListener("click", (e) => {
         btnShop.classList.remove("btn");
         btnShop.classList.add("btn-pressed");
@@ -93,8 +94,18 @@ function initPanelButton() {
             shopItemContainer.style.display = "flex";
         }, 500);
         setTimeout(() => {
-            shopDialogueTextContainer.style.display = "flex";
+            shopDialogueTextContainer.style.display = "inline";
         }, 500);
+
+        // display dialogues in shop
+        document.getElementById("shop-dialogue-text").innerText =
+            `Welcome to the shop, ${globalData.playerData.name}!` +
+            "\nWhat do you want to buy today?";
+        if (globalData.playerData.home === globalData.playerData.location) {
+            document.getElementById("shop-item-airport").style.display = "flex";
+        } else {
+            document.getElementById("shop-item-airport").style.display = "none";
+        }
     });
 
     document.getElementById("btn-map").addEventListener("click", (e) => {
@@ -145,23 +156,22 @@ function initPanelButton() {
         }, 500);
 
         setTimeout(() => {
-            hallDialogueTextContainer.style.display = "flex";
+            hallDialogueTextContainer.style.display = "inline";
         }, 500);
 
-        const hasCargo = playerData.cargo !== null;
-
+        // display dialogues in hall, and options if player has cargo
+        const hasCargo = globalData.playerData.has_cargo;
+        console.log("hall button hit, does player has cargo? " + hasCargo);
         if (hasCargo) {
+            // show unload options
             hallBoardContainer.style.display = "flex";
             setTimeout(() => {
                 hallItemContainer.style.display = "flex";
             }, 500);
             document.getElementById("hall-dialogue-text").innerText =
-                "Now you need to unload the cargo, two choices: I. Do it yourself: a dice game will decide your fate. II. Hire someone: €600, no risk no reward.";
-            // show unload options
-            document.getElementById("hall-board-container").style.display =
-                "flex";
-            document.getElementById("hall-item-container").style.display =
-                "flex";
+                "Now you need to unload the cargo, two choices:" +
+                "\nI. Do it yourself: a dice game will decide your fate." +
+                "\nII. Hire someone: €600, no risk no reward.";
         }
     });
 }
@@ -170,22 +180,56 @@ function initPanelButton() {
 //  UPDATE STATUS FUNCTIONS
 //------------------------------
 
-const updatePlayerStatus = async (gameID) => {
+function initGlobalPlayerStatus() {
+    globalData.playerData = {
+        name: "",
+        time: 0,
+        money: 0,
+        fuel: 0,
+        emission: 0,
+        home: "",
+    };
+}
+
+function animateNumber(elementId, start, end, duration) {
+    const range = end - start;
+    const startTime = new Date().getTime(); // start time
+    const timer = setInterval(function () {
+        const now = new Date().getTime(); //  current time
+        const elapsed = now - startTime; // how much time has elapsed
+        const progress = Math.min(elapsed / duration, 1); // calculate progress
+        document.getElementById(elementId).textContent =
+            start + Math.round(range * progress);
+        if (progress === 1) {
+            // stop timer when exceed duration
+            clearInterval(timer);
+        }
+    }, 20); // update every 20ms
+}
+
+async function updatePlayerStatus(gameID) {
     const playerResponse = await getData(`/game/${gameID}/get-player-data`);
+    const oldPlayerData = globalData.playerData;
     const playerData = playerResponse.player;
     const name = document.getElementById("status-name");
-    const time = document.getElementById("status-time");
-    const money = document.getElementById("status-money");
-    const fuel = document.getElementById("status-fuel");
-    const emission = document.getElementById("status-emission");
-
     name.innerText = `${playerData.name}`;
-    time.innerText = `${playerData.time}`;
-    money.innerText = `${playerData.money}`;
-    fuel.innerText = `${playerData.fuel}`;
-    emission.innerText = `${playerData.emission}`;
+    const duration = 1000;
+    animateNumber("status-time", oldPlayerData.time, playerData.time, duration);
+    animateNumber(
+        "status-money",
+        oldPlayerData.money,
+        playerData.money,
+        duration,
+    );
+    animateNumber("status-fuel", oldPlayerData.fuel, playerData.fuel, duration);
+    animateNumber(
+        "status-emission",
+        oldPlayerData.emission,
+        playerData.emission,
+        duration,
+    );
     return playerData;
-};
+}
 
 function updateFlyProtocol(airportData) {
     const countryName = document.getElementById("flight-country-name");
@@ -211,8 +255,28 @@ function updateFlyProtocol(airportData) {
     }
 }
 
-function isGameFinish(playerData) {
-    return playerData.finish === 1;
+async function isGameFinish() {
+    const response = await getData(`/game/${globalData.gameID}/check-ending`);
+    const isEnd = response["end"];
+    console.log("is game end? " + isEnd);
+    if (isEnd) {
+        console.log("game ends, lose");
+        // disable all panel buttons
+        document.getElementById("btn-shop").disabled = true;
+        document.getElementById("btn-map").disabled = true;
+        document.getElementById("btn-hall").disabled = true;
+
+        const endType = response["type"];
+        if (endType === "time") {
+            // out of time
+            document.getElementById("hall-dialogue-text").innerText =
+                "Sorry, you run out of time...\n Game over.";
+        } else if (endType === "money") {
+            // out of money
+            document.getElementById("hall-dialogue-text").innerText =
+                "Sorry, you run out of money...\n Game over.";
+        }
+    }
 }
 
 //------------------------------
@@ -233,20 +297,34 @@ function initMap() {
 function addMarker(iconType, airportMarkerGroup, airportData, isDisabled) {
     // add marker to map
     // add event listener to marker
-    // event listener will update fly protocol and fly button
-    const airportMarker = L.marker(
-        [airportData.latitude_deg, airportData.longitude_deg],
-        { icon: iconType },
-    ).addTo(airportMarkerGroup);
-    airportMarker.bindTooltip(
-        `<h2>${airportData.country_name}</h2><p>${airportData.name} <b>(${airportData.ident})</b></p>`,
-    );
+    // event listener will update fly protocol and fly button disabled status
+    let airportMarker;
+    // todo update home airport marker
+    console.log("here" + globalData.playerData.home);
+    if (airportData.ident === globalData.playerData.home) {
+        airportMarker = L.marker(
+            [airportData.latitude_deg, airportData.longitude_deg],
+            { icon: iconType },
+        ).addTo(airportMarkerGroup);
+        airportMarker.bindTooltip(
+            `<h2>${airportData.country_name}</h2><p>${airportData.name} <b>(${airportData.ident})</b></p><p>This is your home</p>`,
+        );
+    } else {
+        airportMarker = L.marker(
+            [airportData.latitude_deg, airportData.longitude_deg],
+            { icon: iconType },
+        ).addTo(airportMarkerGroup);
+        airportMarker.bindTooltip(
+            `<h2>${airportData.country_name}</h2><p>${airportData.name} <b>(${airportData.ident})</b></p>`,
+        );
+    }
+
     airportMarker.on("click", () => {
         console.log(airportData);
         document.getElementById("btn-fly").disabled = isDisabled;
         document.getElementById("stamp").style.display = "none";
         updateFlyProtocol(airportData);
-        selectedAirport = airportData;
+        globalData.selectedAirport = airportData;
     });
 }
 
@@ -257,7 +335,7 @@ async function updateMap(gameID, map, airportMarkerGroup) {
     // add event listeners to each marker
     console.log("updating map");
     const airportsResponse = await getData(`/game/${gameID}/get-airports-data`);
-    airportsData = airportsResponse.airports;
+    const airportsData = airportsResponse.airports;
 
     const greenIcon = L.icon({
         iconUrl:
@@ -280,6 +358,8 @@ async function updateMap(gameID, map, airportMarkerGroup) {
         const airportData = airportsData[ident];
         const range_fuel = airportData.range_fuel;
         const range_time = airportData.range_time;
+
+        // whether disable the marker or not
         if (airportData.current === true) {
             addMarker(redIcon, airportMarkerGroup, airportData, true);
         } else if (range_fuel === false || range_time === false) {
@@ -294,90 +374,270 @@ async function updateMap(gameID, map, airportMarkerGroup) {
 }
 
 //------------------------------
-//  SHOP FUNCTIONS
+//  BUY BUTTON EVENT CALLBACKS
 //------------------------------
+async function buyCallback(item) {
+    let amount;
+    let inputElem;
+    if (item === "fuel") {
+        inputElem = document.getElementById("shop-item-fuel-input");
+        amount = inputElem.value;
+        inputElem.value = "";
+    } else if (item === "coffee") {
+        inputElem = document.getElementById("shop-item-coffee-input");
+        amount = inputElem.value;
+        inputElem.value = "";
+    } else if (item === "airport") {
+        amount = 1;
+    } else {
+        // other items not implemented yet
+        amount = 0;
+    }
 
-//------------------------------
-//   HALL FUNCTIONS
-//------------------------------
+    const dialogText = document.getElementById("shop-dialogue-text");
+    let isNum = /^\d+$/.test(amount);
+    if (!isNum) {
+        // fail: not number
+        dialogText.innerText = "Hmm, sorry but...\n What is it again, please?";
+    } else {
+        const response = await postData(`/game/${globalData.gameID}/buy`, {
+            item: item,
+            amount: amount,
+        });
+        if (response.success) {
+            // ok: response success
+            globalData.playerData = await updatePlayerStatus(globalData.gameID);
+
+            // fuel is special, because the amount is money not items amount
+            if (item === "fuel")
+                dialogText.innerText = `Thank you! 
+                You just bought ${response.amount} ton fuel with € ${amount}.`;
+            else if (item === "airport") {
+                // win!!!
+                dialogText.innerText = `Congratulations ${globalData.playerData.name}! Finally you made it!`;
+            }
+            // other countable items
+            else
+                dialogText.innerText = `Thank you! 
+                You just bought ${response.amount} ${item}.`;
+        } else if (response.reason === "money") {
+            // fail: not enough money
+            dialogText.innerText = "Sorry, you don't have enough money.";
+        } else {
+            // fail: other reasons, show message
+            dialogText.innerText = response.message;
+        }
+    }
+}
 
 (async () => {
     //------------------------------
     //   SET EVENT LISTENERS
     //------------------------------
+    // NOTE: in click events, game data should also be updated to globalData
 
-    // Hire, Myself, Fly buttons
-    // const btnHire = document.getElementById("dice-option");
-    // const btnMyself = document.getElementById("unload-option");
-    const btnFly = document.getElementById("btn-fly");
+    // buy fuel button listener
+    document
+        .getElementById("shop-item-fuel-btn")
+        .addEventListener("click", async () => buyCallback("fuel"));
 
-    // btnMyself.addEventListener("click", async () => {
-    //     try {
-    //         const jsonData = { option: 1 };
-    //         await postData(`/game/${gameID}/unload`, jsonData);
-    //         updateMap(gameID, map, airportMarkerGroup);
-    //         updatePlayerStatus(gameID);
-    //         hideOptionsModal();
-    //     } catch (error) {
-    //         console.error(error);
-    //     }
-    // });
-    //
-    // btnHire.addEventListener("click", async () => {
-    //     try {
-    //         const jsonData = { option: 0 };
-    //         await postData(`/game/${gameID}/unload`, jsonData);
-    //         updateMap(gameID, map, airportMarkerGroup);
-    //         updatePlayerStatus(gameID);
-    //         hideOptionsModal();
-    //     } catch (error) {
-    //         console.error(error);
-    //     }
-    // });
+    // buy fuel coffee listener
+    document
+        .getElementById("shop-item-coffee-btn")
+        .addEventListener("click", async () => buyCallback("coffee"));
 
-    btnFly.addEventListener("click", async (event) => {
-        if (selectedAirport) {
+    // buy airport button listener
+    document
+        .getElementById("shop-item-airport-btn")
+        .addEventListener("click", async () => buyCallback("airport"));
+
+    // fly button listener
+    document
+        .getElementById("btn-fly")
+        .addEventListener("click", async (event) => {
+            // jump to hall if player has cargo
+            if (globalData.playerData.has_cargo) {
+                document.getElementById("btn-hall").click();
+                document.getElementById("hall-dialogue-text").innerText =
+                    "Eh... You still have cargo, can't fly now. \nSo... please make your choice.";
+            }
+
+            if (globalData.selectedAirport) {
+                try {
+                    // fly and get new data
+                    const jsonData = {
+                        ident: globalData.selectedAirport.ident,
+                    };
+                    const response = await postData(
+                        `/game/${gameID}/fly`,
+                        jsonData,
+                    );
+                    if (response.success) {
+                        globalData.airportsData = await updateMap(
+                            gameID,
+                            map,
+                            airportMarkerGroup,
+                        );
+                        globalData.playerData =
+                            await updatePlayerStatus(gameID);
+                        // disable fly button
+                        globalData.selectedAirport = null;
+                        event.target.disabled = true;
+                        // show stamp
+                        const stamp = document.getElementById("stamp");
+                        stamp.style.display = "block";
+                        // go to hall
+                        document.getElementById("btn-hall").click();
+                    }
+                } catch (error) {
+                    console.error(error);
+                }
+            }
+        });
+
+    // hire button listener
+    document
+        .getElementById("hall-item-hire-btn")
+        .addEventListener("click", async (event) => {
             try {
-                // fly and get new data
-                const jsonData = { ident: selectedAirport.ident };
+                const jsonData = { option: 0 };
                 const response = await postData(
-                    `/game/${gameID}/fly`,
+                    `/game/${gameID}/unload`,
                     jsonData,
                 );
                 if (response.success) {
-                    airportsData = await updateMap(
-                        gameID,
-                        map,
-                        airportMarkerGroup,
-                    );
-                    playerData = await updatePlayerStatus(gameID);
-                    // disable fly button
-                    selectedAirport = null;
-                    event.target.disabled = true;
-                    // show stamp
-                    const stamp = document.getElementById("stamp");
-                    stamp.style.display = "block";
-                    // go to hall
-                    document.getElementById("btn-hall").click();
+                    // make sure disabled fly button
+                    document.getElementById("btn-fly").disabled = true;
+
+                    // if success, update player status
+                    globalData.playerData = await updatePlayerStatus(gameID);
+
+                    // hide options
+                    document.getElementById(
+                        "hall-board-container",
+                    ).style.display = "none";
+                    document.getElementById(
+                        "hall-item-container",
+                    ).style.display = "none";
+                    document.getElementById("hall-dialogue-text").innerText =
+                        "Great, you made a wise choice! \nOnly cost you € 600, hehehe...";
+                } else if (response.reason === "money") {
+                    document.getElementById("hall-dialogue-text").innerText =
+                        "Hmm, maybe you wanna do it yourself? \nBecause you don't have enough money.";
+                } else {
+                    // unexpected reason
+                    document.getElementById("hall-dialogue-text").innerText =
+                        response.message;
                 }
+                // check if game is ends
+                void isGameFinish();
             } catch (error) {
                 console.error(error);
             }
+        });
+
+    // dice button listener
+    document
+        .getElementById("hall-item-dice-btn")
+        .addEventListener("click", async (event) => {
+            try {
+                const jsonData = { option: 1 };
+                const response = await postData(
+                    `/game/${gameID}/unload`,
+                    jsonData,
+                );
+                if (response.success) {
+                    // make sure disabled fly button
+                    document.getElementById("btn-fly").disabled = true;
+
+                    // if success, update player status
+                    globalData.playerData = await updatePlayerStatus(gameID);
+                    // enable fly button
+                    document.getElementById("btn-fly").disabled = false;
+                    // hide options
+                    document.getElementById(
+                        "hall-board-container",
+                    ).style.display = "none";
+                    document.getElementById(
+                        "hall-item-container",
+                    ).style.display = "none";
+                    let diceMessage = "";
+                    switch (response.dice) {
+                        case 1:
+                            diceMessage =
+                                "Oh no! Your competitor secretly broke your precious cargo, " +
+                                "that cost 90% of your deposit!";
+                            break;
+                        case 2:
+                            diceMessage =
+                                "The cargo is heavily damaged. \nYou lost € 1500!";
+                            break;
+                        case 3:
+                            diceMessage =
+                                "Well, things go smoothly. \nNothing happened to you.";
+                            break;
+                        case 4:
+                            diceMessage =
+                                "Wow! You did a great job. \nYou earned extra € 1500!";
+                            break;
+                        case 5:
+                            diceMessage =
+                                "Congratulation!!! \nYou get a SUPER BIG tip for € 1800!";
+                            break;
+                        case 6:
+                            diceMessage =
+                                "What a lucky day! \nYour money doubled!";
+                            break;
+                    }
+                    document.getElementById("hall-dialogue-text").innerText =
+                        diceMessage;
+                } else {
+                    // unexpected reason
+                    document.getElementById("hall-dialogue-text").innerText =
+                        response.message;
+                }
+                // check if game is ends
+                void isGameFinish();
+            } catch (error) {
+                console.error(error);
+            }
+        });
+
+    // power off button listener
+    document.getElementById("shutdown").addEventListener("click", () => {
+        const userConfirmed = confirm("Do you want to exit the game?");
+        if (userConfirmed) {
+            console.log("Exiting the game...");
+        } else {
+            console.log("User canceled game exit.");
         }
     });
 
     //------------------------------
     //   INIT GAME
     //------------------------------
+    // init panel button
     initPanelButton();
+
+    // have to display map first, otherwise map will not be setup correctly
+    document.getElementById("map").style.display = "flex";
     const gameID = getGameIDFromUrl();
     const [map, airportMarkerGroup] = initMap();
-    airportsData = await updateMap(gameID, map, airportMarkerGroup);
-    playerData = await updatePlayerStatus(gameID);
+    globalData.gameID = gameID;
+    globalData.airportsData = await updateMap(gameID, map, airportMarkerGroup);
 
-    // start new game in hall
-    // document.getElementById(
-    //     "hall-dialogue-text",
-    // ).innerText = `Nice to meet you, ${playerData.name} ! Your goal is to buy your own airport (€20 000) in 10 days, good luck!`;
-    // document.getElementById("btn-hall").click();
+    // init player status
+    initGlobalPlayerStatus();
+
+    // wait 500ms and start new game in hall
+    setTimeout(async () => {
+        // update player status
+        globalData.playerData = await updatePlayerStatus(gameID);
+        document.getElementById(
+            "hall-dialogue-text",
+        ).innerText = `Good morning ${globalData.playerData.name}, Welcome!\nYour goal is to earn €20 000 in 10 days. Ready to start? Good luck!`;
+
+        document.getElementById("btn-hall").click();
+    }, 500);
+
 })();
