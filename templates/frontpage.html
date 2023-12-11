@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Menu</title>
+    <link rel="stylesheet" href="../static/css/frontpage.css">
+</head>
+<body>
+    <div class="background">
+        <img id="image" src="../static/img/background_menu.png">
+    </div>
+
+    <div class="menu">
+        <h1 class="text-center">Flying courier</h1>
+        <button class="btn" onclick="popupNameInput()">New Game</button>
+        <button class="btn" onclick="window.location='highscores'">High Score</button>
+        <button class="btn" onclick="window.location='credits'">Credit</button>
+    </div>
+
+
+    <!-- The Modal -->
+    <div id="myModal" class="modal">
+        <!-- Modal content -->
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <label for="playerName" class="name-label">Enter your name:</label>
+            <input class="btn text" type="text" id="playerName" placeholder="Please Enter Your Name">
+            <button id="start-game" class="btn">Start Game</button>
+        </form>
+    </div>
+    </div>
+    <script src="../static/js/frontpage.js" defer>
+
+
+    </script>
+</body>
+</html>

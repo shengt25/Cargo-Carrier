@@ -1,0 +1,86 @@
+@import url('https://fonts.cdnfonts.com/css/8bit-wonder');
+
+@font-face {
+    font-family: 'Caveat';
+    src: url('/static/font/Caveat-Regular.ttf') format('woff2')
+}
+
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    /* color: green; */
+}
+
+main {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    background-image: url("../img/credits.jpg");
+    height: 100vh;
+    width: 100vw;
+    background-size: cover;
+    background-repeat: no-repeat;
+    font-family: '8BIT WONDER', sans-serif;
+    overflow: hidden;
+}
+
+#wrapper {
+    display: flex;
+    flex-direction: column;
+    /* justify-content: center; */
+    /* text-align: center; */
+    /* align-items: flex-end; */
+    margin-right: 5rem;
+
+    opacity: 0;
+    transform: translateY(20px);
+    animation: slideInFade 5s ease forwards;
+}
+
+#wrapper.credit-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.credit {
+    font-weight: bold;
+    font-size: 4rem;
+}
+
+.title {
+    font-weight: bold;
+    font-size: 3rem;
+}
+
+.name {
+    font-weight: bold;
+    font-size: 3rem;
+}
+
+.pd {
+    padding: 2rem;
+}
+
+.white {
+    color: antiquewhite;
+}
+
+.green {
+    color: green;
+}
+
+.blue {
+    color: #6edff6;
+}
+
+@keyframes slideInFade {
+    from {
+        opacity: 0;
+        transform: translateY(950px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
