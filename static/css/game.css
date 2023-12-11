@@ -107,8 +107,8 @@
 body {
     max-width: max-content;
     margin: auto;
-    width: 90%;
-    height: 90%;
+    width: 95%;
+    height: 98%;
     background-image: url("../img/page-bg.jpg");
     background-position: center;
     background-repeat: no-repeat;
@@ -130,10 +130,11 @@ html {
 
 #main-section-left {
     display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
     flex-wrap: wrap;
     flex-grow: 1;
     height: 100%;
-    /*background-color: blue;*/
     width: 1920px;
     min-width: 800px;
     min-height: 800px;
@@ -203,6 +204,8 @@ html {
     flex-wrap: wrap;
     justify-content: flex-start;
     align-items: flex-start;
+    align-content: center;
+
     width: 100%;
     max-height: 1080px;
     /* 222 map panel height here*/
@@ -420,10 +423,13 @@ html {
 #main-section-right {
     display: flex;
     flex-wrap: wrap;
+    /*justify-content: flex-end;*/
+    /*align-items: flex-end;*/
+    align-content: center;
+    padding-top: 80px;
     width: 300px;
     height: 100%;
     min-width: 250px;
-    /*background-color: green;*/
 }
 
 #main-section-right #monitor {
@@ -440,6 +446,8 @@ html {
 }
 
 #monitor-txt {
+    text-shadow: 3px 3px 10px #000000;
+    color: #ffffff;
     display: inline;
     font-family: "Handlee", sans-serif;
     font-size: 1.5em;

@@ -6,9 +6,10 @@ from datetime import datetime
 from utils import Database
 
 local = True
+# local = False
 
 game_list = {}
-airport_number = 10
+airport_number = 30
 database_param = {"host": "127.0.0.1",
                   "user": "root",
                   "password": "pwd",
@@ -19,9 +20,9 @@ shop_param = {"fuel": {"price": 1, "description": "Fuel"},
               "coffee": {"price": 2, "description": "Coffee"},
               "airport": {"price": 20000, "description": "Airport"}}
 
-player_param = {"money": 100000,
-                "fuel": 10000,
-                "time": 800000}
+player_param = {"money": 2000,
+                "fuel": 1000,
+                "time": 240}
 
 plane_param = {"fuel_per_km": 1.2,
                "speed_per_h": 800,

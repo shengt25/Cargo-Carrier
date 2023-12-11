@@ -87,6 +87,12 @@ function initPanelButton() {
         hallDialogueBubble.style.display = "none";
         hallDialogueTextContainer.style.display = "none";
 
+        // set radar gif
+        const weather = document.getElementById("monitor-txt");
+        const monitor = document.getElementById("monitor");
+        monitor.style.backgroundImage = `url(../static/img/radar.gif)`;
+        weather.innerText = "";
+
         setTimeout(() => {
             shopMainBackground.style.filter = "blur(10px)";
         }, 500);
@@ -150,6 +156,12 @@ function initPanelButton() {
         shopMainBackground.style.filter = "none";
         shopItemContainer.style.display = "none";
         shopDialogueTextContainer.style.display = "none";
+
+        // set radar gif
+        const weather = document.getElementById("monitor-txt");
+        const monitor = document.getElementById("monitor");
+        monitor.style.backgroundImage = `url(../static/img/radar.gif)`;
+        weather.innerText = "";
 
         setTimeout(() => {
             hallMainBackground.style.filter = "blur(10px)";
@@ -241,12 +253,12 @@ async function updateFlyProtocol(airportData) {
     const reward = document.getElementById("flight-reward");
     const weather = document.getElementById("monitor-txt");
     const monitor = document.getElementById("monitor");
-    // todo display weather
+
     const weatherData = await getData(
         `https://api.openweathermap.org/data/2.5/weather?lat=${airportData.latitude_deg}&lon=${airportData.longitude_deg}&appid=d904fae05dc5609aa5ed95ed4f2f3feb&units=metric`,
     );
-    monitor.style.backgroundImage = "none";
-    weather.innerText = `Weather: ${weatherData.main.temp} Celsius, ${weatherData.weather[0].description}`;
+    monitor.style.backgroundImage = `url(../static/img/weather-bg.jpg)`;
+    weather.innerText = `${weatherData.main.temp} Celsius, ${weatherData.weather[0].description}`;
 
     if (airportData.current === true) {
         countryName.innerText = `${airportData.country_name}`;
@@ -262,6 +274,20 @@ async function updateFlyProtocol(airportData) {
         time.innerText = `Time: ${airportData.time} hours`;
         emission.innerText = `Emission: ${airportData.emission} kg`;
         reward.innerText = `Reward: ${airportData.reward} €`;
+
+        // set red text if out of range
+        const playerFuel = globalData.playerData.fuel;
+        const playerTime = globalData.playerData.time;
+        if (playerFuel < airportData.fuel) {
+            fuel.style.color = "red";
+        } else {
+            fuel.style.color = "black";
+        }
+        if (playerTime < airportData.time) {
+            time.style.color = "red";
+        } else {
+            time.style.color = "black";
+        }
     }
 }
 
@@ -443,10 +469,14 @@ function mapAnimation(markerGroup, airportDataStart, airportDataEnd) {
         }
     }
 
+    // fly gif
     // random between 1 and 5
-    const windowNumber = Math.floor(Math.random() * 10) + 1;
+    const windowNumber = Math.floor(Math.random() * 5 + 1);
     const windowFileName = "window" + windowNumber + ".gif";
-    document.getElementById();
+    const monitor = document.getElementById("monitor");
+    const monitorText = document.getElementById("monitor-txt");
+    monitor.style.backgroundImage = `url(../static/img/${windowFileName})`;
+    monitorText.innerText = "";
     animateMarker();
 }
 
@@ -631,6 +661,11 @@ async function buyCallback(
                         );
 
                         setTimeout(async () => {
+                            const monitor = document.getElementById("monitor");
+                            const monitorText =
+                                document.getElementById("monitor-txt");
+                            monitor.style.backgroundImage = `url(../static/img/radar.gif)`;
+                            monitorText.innerText = "";
                             globalData.airportsData = await updateMap(
                                 gameID,
                                 map,
