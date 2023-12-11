@@ -248,7 +248,6 @@ def check_ending(game_id):
                     "message": message}
         game_list[game_id].database.query(sql_query, parameter)
         # finish the game for time ending
-        del game_list[game_id]
         return response
     if money_ending:
         response = {"end": True,
@@ -257,7 +256,6 @@ def check_ending(game_id):
                     "message": message}
         game_list[game_id].database.query(sql_query, parameter)
         # finish the game for money ending
-        del game_list[game_id]
         return response
     return {"end": False, "score": score, "message": message}
 

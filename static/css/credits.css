@@ -4,6 +4,7 @@
     font-family: 'Caveat';
     src: url('/static/font/Caveat-Regular.ttf') format('woff2')
 }
+
 * {
     padding: 0;
     margin: 0;
@@ -15,9 +16,9 @@ main {
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    background-image: url("../img/credits.jpg");    
-    /*height: 100vh;*/
-    /*width: 100vw;*/
+    background-image: url("../img/credits.jpg");
+    height: 100vh;
+    width: 100vw;
     background-size: cover;
     background-repeat: no-repeat;
     font-family: '8BIT WONDER', sans-serif;
@@ -47,7 +48,7 @@ main {
     font-size: 4rem;
 }
 
-.title  {
+.title {
     font-weight: bold;
     font-size: 3rem;
 }
@@ -66,7 +67,7 @@ main {
 }
 
 .green {
-    color:green;
+    color: green;
 }
 
 .blue {
