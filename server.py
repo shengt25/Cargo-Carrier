@@ -27,7 +27,7 @@ player_param = {"money": 2000,
 plane_param = {"fuel_per_km": 1.2,
                "speed_per_h": 800,
                "emission_per_km": 0.1,
-               "reward_per_km": 1.2,
+               "reward_per_km": 3,
                "hire_cost": 600}
 
 master_database = Database(database_param)
