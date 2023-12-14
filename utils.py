@@ -12,7 +12,14 @@ class Database:
             autocommit=True)
 
     def query(self, query, parameter=None):
-        cursor = self.connection.cursor(dictionary=True)
+        # reconnect if connection is lost
+        try:
+            cursor = self.connection.cursor(dictionary=True)
+        except mysql.connector.errors.OperationalError:
+            self.reconnect()
+            cursor = self.connection.cursor(dictionary=True)
+
+        # set parameter to None if it is not provided
         if parameter is None:
             cursor.execute(query)
         else:
@@ -22,6 +29,9 @@ class Database:
             cursor.execute(query, parameter)
         response = cursor.fetchall()
         return response
+
+    def reconnect(self):
+        self.connection.reconnect()
 
 
 def second_to_hm(seconds: int) -> tuple[int, int]:
