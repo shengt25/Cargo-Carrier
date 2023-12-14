@@ -29,6 +29,7 @@ plane_param = {"fuel_per_km": 1.2,
                "emission_per_km": 0.1,
                "reward_per_km": 1.2,
                "hire_cost": 600}
+
 master_database = Database(database_param)
 
 app = Flask(__name__)
@@ -263,7 +264,7 @@ def check_ending(game_id):
 @app.route("/get-highscore")
 def get_highscore():
     scores = []
-    sql_query = "SELECT screen_name, money, fuel, emission, time, score FROM game ORDER BY score DESC LIMIT 10"
+    sql_query = "SELECT screen_name, money, fuel, emission, time, score FROM game ORDER BY score DESC LIMIT 100"
     high_scores = master_database.query(sql_query)
     for item in high_scores:
         scores.append(item["score"])
