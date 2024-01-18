@@ -10,10 +10,10 @@ from display import clear_screen, print_experience_notification, print_high_scor
 def main(use_online_database, database_config=None):
     # init database connection
     if use_online_database:
-        database_config = {"host": "aws.connect.psdb.cloud",
-                           "user": "dxqpz25yy8kfdhyfsaja",
-                           "password": "pscale_pw_6thKhkwxlyLOrxODDjTP91kJsehBJWJC93ynBxsjFrb",
-                           "database": "cargo_carrier",
+        database_config = {"host": "",
+                           "user": "",
+                           "password": "",
+                           "database": "",
                            "port": 3306}
 
     connection = mysql.connector.connect(
