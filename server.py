@@ -4,9 +4,10 @@ import time
 from Game import Game
 from datetime import datetime
 from utils import Database
+from gevent import pywsgi
 
-local = True
-# local = False
+# local = True
+local = False
 
 game_list = {}
 airport_number = 30
@@ -278,9 +279,10 @@ def get_highscore():
 
 
 if __name__ == "__main__":
-
     if local:
         app.run(debug=True, host="127.0.0.1", port=5000)
     else:
-        ssl_context = ("/etc/letsencrypt/live/st17.fyi/fullchain.pem", "/etc/letsencrypt/live/st17.fyi/privkey.pem")
-        app.run(debug=False, host="0.0.0.0", port=443, ssl_context=ssl_context)
+        http_server = pywsgi.WSGIServer(('0.0.0.0', 443), app,
+                                        keyfile="/etc/letsencrypt/live/st17.fyi/privkey.pem",
+                                        certfile="/etc/letsencrypt/live/st17.fyi/fullchain.pem")
+        http_server.serve_forever()
