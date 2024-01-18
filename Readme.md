@@ -1,12 +1,13 @@
-# Backend API Ussage Guide
+# API Guide
 
-## Replace server with server address
+## Getting Started
+Replace your server with this server address
 
 The server address can be `http://127.0.0.1:5000` when you run it locally
 
 Or you can just use `https://st17.fyi`, it is published in online server.
 
-## Test using Postman or others
+## Test using Postman or other API Tools
 
 ### Start new game:
 
@@ -14,7 +15,7 @@ POST: `{"name": <name>}`
 
 To:  `<server>/game/new-game`
 
-For example: send `{"name": Amir}` to `https://st17.fyi/game/new-game`
+For example: send `{"name": Amir}` to `https://st17.fyigame/game/new-`
 
 Example response: 
 
