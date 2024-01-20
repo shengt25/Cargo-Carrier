@@ -179,7 +179,7 @@ or
     "success": true}
 ```
 
-Special case when trying to where they already at, fly again before unload or to somewhere does not exist in map(for example because someone modified html element, javascript or send wrong data)
+**Note** : Special case when trying to where they already at, fly again before unload or to somewhere does not exist in map(for example because someone modified html element, javascript or send wrong data)
 
 `{ "message": "You are already here, hacker!", "reason": "airport", "success": false }`
 
