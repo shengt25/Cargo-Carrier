@@ -1,20 +1,21 @@
-# Backend API Ussage Guide
+# API Guide
 
-## Replace server with server address
+## Getting Started
+Replace your server with this server address
 
-The server address can be `http://127.0.0.1:5000` when you run it locally
+The server address can be `http://127.0.0.1:5000` when you run it locally on your machine
 
-Or you can just use `https://st17.fyi`, it is published in online server.
+Or you can just use `https://st17.fyi`(The Base URL), for online server.
 
-## Test using Postman or others
+## Test using Postman or other API Tools
 
-### Start new game:
+### To Start new game:
 
 POST: `{"name": <name>}` 
 
 To:  `<server>/game/new-game`
 
-For example: send `{"name": Amir}` to `https://st17.fyi/game/new-game`
+For example: send `{"name": Amir}` to `https://st17.fyigame/game/new-`
 
 Example response: 
 
@@ -22,7 +23,7 @@ Example response:
 
 
 
-### Game page
+### To Get Game Page
 
 In browser: `<server>/game/<game_id>`
 
@@ -30,7 +31,7 @@ Response: the web page of game that belongs to `<game_id> `
 
 
 
-### Get airports data:
+### To Get Airports Data:
 
 GET:  `<server>/game/<game_id>/get-airports-data`
 
@@ -94,7 +95,7 @@ or
 
 
 
-### Buy fuel:
+### To Buy fuel:
 
 POST: `{"item": "fuel", "amount": <number>}` 
 
@@ -129,7 +130,7 @@ or
 
 
 
-### Buy other things
+### To Buy other things
 
 POST: `{"item": <item_name>, "amount": <number>}` 
 
@@ -145,7 +146,7 @@ Item name list:
 
   
 
-### Fly:
+### To Fly:
 
 POST: `{"ident": <icao_code_of_airport>}` 
 
@@ -178,7 +179,8 @@ or
     "success": true}
 ```
 
-Special case when trying to where they already at, fly again before unload or to somewhere does not exist in map(for example because someone modified html element, javascript or send wrong data)
+> **Note** : Special cases when trying to land where they already at; flying again before unloading or flying to somewhere that does not exist on the map(due to modified html element, javascript or sending wrong data)
+These are the responses for such cases:
 
 `{ "message": "You are already here, hacker!", "reason": "airport", "success": false }`
 
@@ -188,7 +190,7 @@ Special case when trying to where they already at, fly again before unload or to
 
 
 
-### Unload:
+### To Unload:
 
 Send: POST `{"ident": <option>}` to ``<server>/game/<game_id>/unload`
 
@@ -237,6 +239,6 @@ or
   "success": true}
 ```
 
-Special case when trying to unload again before flying. (for example because someone modified javascript or send wrong data)
-
+> There are error cases when trying to unload again before flying. (for example because someone modified javascript or send wrong data)
+It gives response message like this:
 `{ "message": "How do you unload without cargo, hacker?", "success": false }`
