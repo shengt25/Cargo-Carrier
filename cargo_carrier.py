@@ -4,10 +4,6 @@ import time
 from Game import Game
 from datetime import datetime
 from utils import Database
-from gevent import pywsgi
-
-# local = True
-local = False
 
 game_list = {}
 airport_number = 30
@@ -33,6 +29,7 @@ plane_param = {"fuel_per_km": 1.2,
 
 master_database = Database(database_param)
 
+URL_PREFIX = "/cargo-carrier"
 app = Flask(__name__)
 
 
@@ -51,22 +48,22 @@ def print_log(game_id, text):
     print(formatted_text)
 
 
-@app.route("/")
+@app.route(URL_PREFIX + "/")
 def frontpage():
-    return render_template('frontpage.html')
+    return render_template("frontpage.html")
 
 
-@app.route('/highscores')
+@app.route(URL_PREFIX + "/highscores")
 def highscores():
-    return render_template('highscores.html')
+    return render_template("highscores.html")
 
 
-@app.route('/credits')
-def credits_():
-    return render_template('credits.html')
+@app.route(URL_PREFIX + "/credits")
+def credits():
+    return render_template("credits.html")
 
 
-@app.route("/game/<game_id>")
+@app.route(URL_PREFIX + "/game/<game_id>")
 def game(game_id):
     if game_id not in game_list:
         print_log(game_id, "[fail] game: game not found")
@@ -79,11 +76,11 @@ def game(game_id):
             webpage = "<h1>Invalid Game Session: already finished</h1>"
         else:
             print_log(game_id, "[ok] game: game home page")
-            webpage = render_template('game.html')
+            webpage = render_template("game.html")
     return webpage
 
 
-@app.route("/game/<game_id>/get-all-data")
+@app.route(URL_PREFIX + "/game/<game_id>/get-all-data")
 def get_all_data(game_id):
     if game_id not in game_list:
         message = "[fail] get-all-data: game not found"
@@ -102,7 +99,7 @@ def get_all_data(game_id):
     return response
 
 
-@app.route("/game/<game_id>/get-airports-data")
+@app.route(URL_PREFIX + "/game/<game_id>/get-airports-data")
 def get_airports_data(game_id):
     if game_id not in game_list:
         message = "[fail] get-airports-data: game not found"
@@ -125,7 +122,7 @@ def get_airports_data(game_id):
     return response
 
 
-@app.route("/game/<game_id>/get-player-data")
+@app.route(URL_PREFIX + "/game/<game_id>/get-player-data")
 def get_player_data(game_id):
     if game_id not in game_list:
         message = "[fail] get-player-data: game not found"
@@ -141,9 +138,9 @@ def get_player_data(game_id):
     return response
 
 
-@app.route("/game/new-game", methods=["POST"])
+@app.route(URL_PREFIX + "/game/new-game", methods=["POST"])
 def new_game():
-    # get player's name
+    # get player"s name
     data = request.get_json()
     player_name = data["name"]
 
@@ -171,7 +168,7 @@ def new_game():
     return response
 
 
-@app.route("/game/<game_id>/buy", methods=["POST"])
+@app.route(URL_PREFIX + "/game/<game_id>/buy", methods=["POST"])
 def buy(game_id):
     if game_id not in game_list:
         message = "[fail] buy: game not found"
@@ -197,7 +194,7 @@ def buy(game_id):
     return response
 
 
-@app.route("/game/<game_id>/fly", methods=["POST"])
+@app.route(URL_PREFIX + "/game/<game_id>/fly", methods=["POST"])
 def fly(game_id):
     if game_id not in game_list:
         message = "[fail] fly: game not found"
@@ -211,7 +208,7 @@ def fly(game_id):
     return response
 
 
-@app.route("/game/<game_id>/unload", methods=["POST"])
+@app.route(URL_PREFIX + "/game/<game_id>/unload", methods=["POST"])
 def unload(game_id):
     if game_id not in game_list:
         message = "[fail] unload: game not found"
@@ -226,7 +223,7 @@ def unload(game_id):
     return response
 
 
-@app.route("/game/<game_id>/check-ending")
+@app.route(URL_PREFIX + "/game/<game_id>/check-ending")
 def check_ending(game_id):
     if game_id not in game_list:
         message = "[fail] check-ending: game not found"
@@ -262,7 +259,7 @@ def check_ending(game_id):
     return {"end": False, "score": score, "message": message}
 
 
-@app.route("/get-highscore")
+@app.route(URL_PREFIX + "/get-highscore")
 def get_highscore():
     scores = []
     sql_query = "SELECT screen_name, money, fuel, emission, time, score FROM game ORDER BY score DESC LIMIT 100"
@@ -279,10 +276,4 @@ def get_highscore():
 
 
 if __name__ == "__main__":
-    if local:
-        app.run(debug=True, host="127.0.0.1", port=5000)
-    else:
-        http_server = pywsgi.WSGIServer(('0.0.0.0', 443), app,
-                                        keyfile="/etc/letsencrypt/live/st17.fyi/privkey.pem",
-                                        certfile="/etc/letsencrypt/live/st17.fyi/fullchain.pem")
-        http_server.serve_forever()
+    app.run(debug=True, host="127.0.0.1", port=5000)
