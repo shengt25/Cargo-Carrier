@@ -12,7 +12,7 @@ const renderHighScore = async () => {
     // console.log(tableBody)
     // const tr = document.createElement('tr')
     // tableBody.appendChild(tr)
-    const highScores = await getData("/get-highscore");
+    const highScores = await getData("get-highscore");
     console.log(highScores);
 
     htmls = highScores

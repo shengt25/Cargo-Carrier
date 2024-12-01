@@ -90,7 +90,7 @@ function initPanelButton() {
         // set radar gif
         const weather = document.getElementById("monitor-txt");
         const monitor = document.getElementById("monitor");
-        monitor.style.backgroundImage = `url(../static/img/radar.gif)`;
+        monitor.style.backgroundImage = `url(/static/img/radar.gif)`;
         weather.innerText = "";
 
         setTimeout(() => {
@@ -160,7 +160,7 @@ function initPanelButton() {
         // set radar gif
         const weather = document.getElementById("monitor-txt");
         const monitor = document.getElementById("monitor");
-        monitor.style.backgroundImage = `url(../static/img/radar.gif)`;
+        monitor.style.backgroundImage = `url(/static/img/radar.gif)`;
         weather.innerText = "";
 
         setTimeout(() => {
@@ -220,7 +220,7 @@ function animateNumber(elementId, start, end, duration) {
 }
 
 async function updatePlayerStatus(gameID) {
-    const playerResponse = await getData(`/game/${gameID}/get-player-data`);
+    const playerResponse = await getData(`${gameID}/get-player-data`);
     const oldPlayerData = globalData.playerData;
     const playerData = playerResponse.player;
     const name = document.getElementById("status-name");
@@ -257,7 +257,7 @@ async function updateFlyProtocol(airportData) {
     const weatherData = await getData(
         `https://api.openweathermap.org/data/2.5/weather?lat=${airportData.latitude_deg}&lon=${airportData.longitude_deg}&appid=d904fae05dc5609aa5ed95ed4f2f3feb&units=metric`,
     );
-    monitor.style.backgroundImage = `url(../static/img/weather-bg.jpg)`;
+    monitor.style.backgroundImage = `url(/static/img/weather-bg.jpg)`;
     weather.innerText = `${weatherData.main.temp} Celsius, ${weatherData.weather[0].description}`;
 
     if (airportData.current === true) {
@@ -292,7 +292,7 @@ async function updateFlyProtocol(airportData) {
 }
 
 async function isGameFinish() {
-    const response = await getData(`/game/${globalData.gameID}/check-ending`);
+    const response = await getData(`${globalData.gameID}/check-ending`);
     const isEnd = response["end"];
     console.log("is game end? " + isEnd);
     if (isEnd) {
@@ -309,7 +309,7 @@ async function isGameFinish() {
                 "Sorry, you run out of time...\n Game over.";
             // todo not good to jump directly
             setTimeout(() => {
-                window.location.href = `/credits`;
+                window.location.href = `credits`;
             }, 5000);
         } else if (endType === "money") {
             // out of money
@@ -317,7 +317,7 @@ async function isGameFinish() {
                 "Sorry, you run out of money...\n Game over.";
             // todo not good to jump directly
             setTimeout(() => {
-                window.location.href = `/credits`;
+                window.location.href = `credits`;
             }, 5000);
         }
     }
@@ -345,7 +345,7 @@ function addMarker(iconType, markerGroup, airportData, isDisabled) {
     // event listener will update fly protocol and fly button disabled status
     let airportMarker;
     const homeIcon = L.icon({
-        iconUrl: "../static/img/marker-home.png",
+        iconUrl: "/static/img/marker-home.png",
         iconSize: [35, 35],
         iconAnchor: [12, 41],
         popupAnchor: [1, -34],
@@ -384,24 +384,24 @@ async function updateMap(gameID, map, airportMarkerGroup, currentMarkerGroup) {
     // new markers with different colors
     // add event listeners to each marker
     console.log("updating map");
-    const airportsResponse = await getData(`/game/${gameID}/get-airports-data`);
+    const airportsResponse = await getData(`${gameID}/get-airports-data`);
     const airportsData = airportsResponse.airports;
 
     const greenIcon = L.icon({
-        iconUrl: "../static/img/marker-green.png",
+        iconUrl: "/static/img/marker-green.png",
         iconSize: [25, 41],
         iconAnchor: [12, 41],
         popupAnchor: [1, -34],
     });
     // out range airports
     const redIcon = L.icon({
-        iconUrl: "../static/img/marker-red.png",
+        iconUrl: "/static/img/marker-red.png",
         iconSize: [25, 41],
         iconAnchor: [12, 41],
         popupAnchor: [1, -34],
     });
     const currentIcon = L.icon({
-        iconUrl: "../static/img/marker-plane.png",
+        iconUrl: "/static/img/marker-plane.png",
         iconSize: [35, 35],
         iconAnchor: [12, 41],
         popupAnchor: [1, -34],
@@ -431,7 +431,7 @@ async function updateMap(gameID, map, airportMarkerGroup, currentMarkerGroup) {
 function mapAnimation(markerGroup, airportDataStart, airportDataEnd) {
     let planeMarker;
     const planeIcon = L.icon({
-        iconUrl: "../static/img/marker-plane.png",
+        iconUrl: "/static/img/marker-plane.png",
         iconSize: [35, 35],
         iconAnchor: [12, 41],
         popupAnchor: [1, -34],
@@ -475,7 +475,7 @@ function mapAnimation(markerGroup, airportDataStart, airportDataEnd) {
     const windowFileName = "window" + windowNumber + ".gif";
     const monitor = document.getElementById("monitor");
     const monitorText = document.getElementById("monitor-txt");
-    monitor.style.backgroundImage = `url(../static/img/${windowFileName})`;
+    monitor.style.backgroundImage = `url(/static/img/${windowFileName})`;
     monitorText.innerText = "";
     animateMarker();
 }
@@ -513,7 +513,7 @@ async function buyCallback(
         // fail: not number
         dialogText.innerText = "Hmm, sorry but...\n What is it again, please?";
     } else {
-        const response = await postData(`/game/${globalData.gameID}/buy`, {
+        const response = await postData(`${globalData.gameID}/buy`, {
             item: item,
             amount: amount,
         });
@@ -538,7 +538,7 @@ async function buyCallback(
                 Your dream came true`;
                 // todo not good to jump directly
                 setTimeout(() => {
-                    window.location.href = `/credits`;
+                    window.location.href = `credits`;
                 }, 5000);
             }
             // other countable items
@@ -637,7 +637,7 @@ async function buyCallback(
                         ident: globalData.selectedAirport.ident,
                     };
                     const response = await postData(
-                        `/game/${gameID}/fly`,
+                        `${gameID}/fly`,
                         jsonData,
                     );
                     if (response.success) {
@@ -664,7 +664,7 @@ async function buyCallback(
                             const monitor = document.getElementById("monitor");
                             const monitorText =
                                 document.getElementById("monitor-txt");
-                            monitor.style.backgroundImage = `url(../static/img/radar.gif)`;
+                            monitor.style.backgroundImage = `url(/static/img/radar.gif)`;
                             monitorText.innerText = "";
                             globalData.airportsData = await updateMap(
                                 gameID,
@@ -688,7 +688,7 @@ async function buyCallback(
             try {
                 const jsonData = { option: 0 };
                 const response = await postData(
-                    `/game/${gameID}/unload`,
+                    `${gameID}/unload`,
                     jsonData,
                 );
                 if (response.success) {
@@ -735,7 +735,7 @@ async function buyCallback(
             try {
                 const jsonData = { option: 1 };
                 const response = await postData(
-                    `/game/${gameID}/unload`,
+                    `${gameID}/unload`,
                     jsonData,
                 );
                 if (response.success) {
@@ -805,7 +805,7 @@ async function buyCallback(
     document.getElementById("shutdown").addEventListener("click", () => {
         const userConfirmed = confirm("Do you want to exit the game?");
         if (userConfirmed) {
-            window.location.href = "/";
+            window.location.href = "../";
             console.log("Exiting the game...");
         } else {
             console.log("User canceled game exit.");

@@ -33,7 +33,7 @@ const popupNameInput = () => {
 }
 // send post to create new game
 document.getElementById("start-game").addEventListener("click", async () => {
-    const url = "/game/new-game"
+    const url = "game/new-game"
     const name = document.getElementById("playerName").value
     const re = "^[\w'\-,.][^0-9_!¡?÷?¿/\\+=@#$%ˆ&*(){}|~<>;:[\]]{2,}$"
     const isValidName = /^[a-z ,.'-]+$/i.test(name)
@@ -42,7 +42,7 @@ document.getElementById("start-game").addEventListener("click", async () => {
         const response = await postData(url, data)
         const gameID = response.gameID
         console.log(`Game ID: ${gameID}`)
-        window.location.href = `/game/${gameID}`
+        window.location.href = `game/${gameID}`
     } else {
         alert('Please enter a valid name')
     }
