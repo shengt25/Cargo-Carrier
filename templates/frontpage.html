@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Game Menu</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/frontpage.css') }}">
+    <link rel="stylesheet" href="../static/css/frontpage.css">
 </head>
 <body>
     <div class="background">
-        <img id="image" src="{{ url_for('static', filename='img/background_menu.png') }}">
+        <img id="image" src="../static/img/background_menu.png">
     </div>
 
     <div class="menu">
@@ -26,8 +26,8 @@
             <label for="playerName" class="name-label">Enter your name:</label>
             <input class="btn text" type="text" id="playerName" placeholder="Please Enter Your Name">
             <button id="start-game" class="btn">Start Game</button>
-        </div>
+        </div>background
     </div>
-    <script src="{{ url_for('static', filename='js/frontpage.js') }}" defer></script>
+    <script src="../static/js/frontpage.js" defer></script>
 </body>
 </html>
