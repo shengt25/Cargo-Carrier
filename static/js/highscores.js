@@ -31,7 +31,6 @@ const renderHighScore = async () => {
         })
         .join("");
     tableBody.innerHTML = htmls;
-    console.error("Error:", error);
 };
 
 renderHighScore();

@@ -90,7 +90,7 @@ function initPanelButton() {
         // set radar gif
         const weather = document.getElementById("monitor-txt");
         const monitor = document.getElementById("monitor");
-        monitor.style.backgroundImage = `url(/static/img/radar.gif)`;
+        monitor.style.backgroundImage = `url(../static/img/radar.gif)`;
         weather.innerText = "";
 
         setTimeout(() => {
@@ -160,7 +160,7 @@ function initPanelButton() {
         // set radar gif
         const weather = document.getElementById("monitor-txt");
         const monitor = document.getElementById("monitor");
-        monitor.style.backgroundImage = `url(/static/img/radar.gif)`;
+        monitor.style.backgroundImage = `url(../static/img/radar.gif)`;
         weather.innerText = "";
 
         setTimeout(() => {
@@ -257,7 +257,7 @@ async function updateFlyProtocol(airportData) {
     const weatherData = await getData(
         `https://api.openweathermap.org/data/2.5/weather?lat=${airportData.latitude_deg}&lon=${airportData.longitude_deg}&appid=d904fae05dc5609aa5ed95ed4f2f3feb&units=metric`,
     );
-    monitor.style.backgroundImage = `url(/static/img/weather-bg.jpg)`;
+    monitor.style.backgroundImage = `url(../static/img/weather-bg.jpg)`;
     weather.innerText = `${weatherData.main.temp} Celsius, ${weatherData.weather[0].description}`;
 
     if (airportData.current === true) {
@@ -345,7 +345,7 @@ function addMarker(iconType, markerGroup, airportData, isDisabled) {
     // event listener will update fly protocol and fly button disabled status
     let airportMarker;
     const homeIcon = L.icon({
-        iconUrl: "/static/img/marker-home.png",
+        iconUrl: "../static/img/marker-home.png",
         iconSize: [35, 35],
         iconAnchor: [12, 41],
         popupAnchor: [1, -34],
@@ -388,20 +388,20 @@ async function updateMap(gameID, map, airportMarkerGroup, currentMarkerGroup) {
     const airportsData = airportsResponse.airports;
 
     const greenIcon = L.icon({
-        iconUrl: "/static/img/marker-green.png",
+        iconUrl: "../static/img/marker-green.png",
         iconSize: [25, 41],
         iconAnchor: [12, 41],
         popupAnchor: [1, -34],
     });
     // out range airports
     const redIcon = L.icon({
-        iconUrl: "/static/img/marker-red.png",
+        iconUrl: "../static/img/marker-red.png",
         iconSize: [25, 41],
         iconAnchor: [12, 41],
         popupAnchor: [1, -34],
     });
     const currentIcon = L.icon({
-        iconUrl: "/static/img/marker-plane.png",
+        iconUrl: "../static/img/marker-plane.png",
         iconSize: [35, 35],
         iconAnchor: [12, 41],
         popupAnchor: [1, -34],
@@ -431,7 +431,7 @@ async function updateMap(gameID, map, airportMarkerGroup, currentMarkerGroup) {
 function mapAnimation(markerGroup, airportDataStart, airportDataEnd) {
     let planeMarker;
     const planeIcon = L.icon({
-        iconUrl: "/static/img/marker-plane.png",
+        iconUrl: "../static/img/marker-plane.png",
         iconSize: [35, 35],
         iconAnchor: [12, 41],
         popupAnchor: [1, -34],
@@ -475,7 +475,7 @@ function mapAnimation(markerGroup, airportDataStart, airportDataEnd) {
     const windowFileName = "window" + windowNumber + ".gif";
     const monitor = document.getElementById("monitor");
     const monitorText = document.getElementById("monitor-txt");
-    monitor.style.backgroundImage = `url(/static/img/${windowFileName})`;
+    monitor.style.backgroundImage = `url(../static/img/${windowFileName})`;
     monitorText.innerText = "";
     animateMarker();
 }
@@ -664,7 +664,7 @@ async function buyCallback(
                             const monitor = document.getElementById("monitor");
                             const monitorText =
                                 document.getElementById("monitor-txt");
-                            monitor.style.backgroundImage = `url(/static/img/radar.gif)`;
+                            monitor.style.backgroundImage = `url(../static/img/radar.gif)`;
                             monitorText.innerText = "";
                             globalData.airportsData = await updateMap(
                                 gameID,
