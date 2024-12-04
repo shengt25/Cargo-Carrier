@@ -1,13 +1,32 @@
-# API Guide
-
 ## Getting Started
-Replace your server with this server address
 
-The server address can be `http://127.0.0.1:5000` when you run it locally on your machine
+### Install the required packages:
 
-Or you can just use `https://st17.fyi`(The Base URL), for online server.
+```
+pip install geopy mysql-connector-python flask
+```
 
-## Test using Postman or other API Tools
+### Import Database 
+
+Create a new database and import data from provided `database.sql`.
+
+### Configure Database in app.py
+
+At the beginning of app.py there are configerations about database and game settings.  Modify them as your database configuration.
+
+```
+database_param = {"host": "127.0.0.1",
+                  "user": "root",
+                  "password": "pwd",
+                  "database": "cargo_carrier",
+                  "port": 3306}
+```
+
+### Run App
+
+Run `python app.py`.
+
+# Backend API Documentation 
 
 ### To Start new game:
 
@@ -61,7 +80,8 @@ or
             "reward": 408,
             "time": 0.4,
             "visit": 0},
-        ... ...(more airports data inside ICAO code as json key)}
+				}
+}
 ```
 
 
@@ -239,6 +259,6 @@ or
   "success": true}
 ```
 
-> There are error cases when trying to unload again before flying. (for example because someone modified javascript or send wrong data)
+There are error cases when trying to unload again before flying. (for example because someone modified javascript or send wrong data)
 It gives response message like this:
 `{ "message": "How do you unload without cargo, hacker?", "success": false }`
