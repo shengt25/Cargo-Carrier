@@ -1,4 +1,4 @@
-## Getting Started
+# Getting Started
 
 ### Install the required packages:
 
@@ -25,6 +25,8 @@ database_param = {"host": "127.0.0.1",
 ### Run App
 
 Run `python app.py`.
+
+
 
 # Backend API Documentation 
 
